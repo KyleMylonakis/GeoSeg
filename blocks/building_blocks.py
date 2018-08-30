@@ -122,8 +122,8 @@ def transition_layer(inputs,filters,
         msg = 'Expected up_or_down to be either "up" or "down"but instead got {}'
         raise ValueError(msg.format(up_or_down))
     
-    filters = int(filters*filter_factor)
-    
+    #filters = int(filters*filter_factor)
+    print('transition filters:', filters)
     out = Conv2D(filters=filters,
                 kernel_size=(1,3),
                 strides = (1,1),

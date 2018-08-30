@@ -5,7 +5,7 @@
 #
 
 import json
-
+from meta_arch import utils
 from meta_arch.MetaModel import MetaModel
 from keras.layers import Conv2D
 class AutoEncoder(MetaModel):
@@ -65,13 +65,14 @@ class AutoEncoder(MetaModel):
         else:
             self.first_layer = False
             
-        super().__init__(init_filters, model_config,name)
+        super().__init__(model_config,name)
 
     def first_layer_fn(self):
         if self.first_layer:
             fl_config = self.meta_config['first_layer']
-            if not 'filters' in fl_config.keys():
-                fl_config['filters'] = self.meta_config['init_filters']
+            fl_config['filters'] = self.block.config['filters']
+            #if not 'filters' in fl_config.keys():
+            #    fl_config['filters'] = self.meta_config['init_filters']
             return lambda x: Conv2D(**fl_config)(x)
         else:
             return None
@@ -86,22 +87,37 @@ class AutoEncoder(MetaModel):
         return lambda x: Conv2D(**conv_config)(x)
     
     def __auto_encoder_fn(self, inputs):
-        #print('here')
-        out = inputs
-        num_filters = self.init_filters
+        
+        
         compression = self.compression
         num_layers = self.num_layers
         block = self.block
+        utils._dump_config(block,'block_test')
+        #print('here')
+        out = inputs
+        #num_filters = self.init_filters
+        num_filters = block.config['filters']
+        
+        
         for i in range(num_layers):
+            
+            #num_filters = num_filters*compression
+            # 48x3x6
+            
             out = block.base_block(tag ='down_'+ str(i),
                             filters = num_filters)(out)
             
+            
             num_filters = num_filters*compression
-
+            #24x3x12
+            print('new filters:',num_filters)
             out = block.down_sample(tag = str(i), 
                             filters = num_filters)(out)
             
+
         for i in range(num_layers):
+            print('up %d'%i)
+            #num_filters = int(num_filters // compression)
             out = block.base_block(tag = 'up_'+str(i),
                             filters = num_filters)(out)
             num_filters = int(num_filters // compression)

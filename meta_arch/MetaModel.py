@@ -4,15 +4,16 @@ from keras.layers import Reshape
 import json 
 
 class MetaModel(ABC):
-    def __init__(self, init_filters, config, config_path):
-        self.init_filters = init_filters
+    def __init__(self,config, config_path=None):
+        
         super().__init__()
         self.config_path = config_path
         self.config = config
         self.meta_config = config['model']['meta_arch']
 
-        with open(config_path+'.json','w') as f:
-            json.dump(config,f,indent=2)
+        if not config_path is None:
+            with open(config_path+'.json','w') as f:
+                json.dump(config,f,indent=2)
         
         if self.config['model']['block']['name'] == 'res':
             print('RESIDUAL BLOCK DETECTED')

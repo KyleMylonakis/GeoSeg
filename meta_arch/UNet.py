@@ -61,14 +61,15 @@ class UNet(MetaModel):
         else:
             self.first_layer = False
             
-        super().__init__(init_filters,model_config,name)
+        super().__init__(model_config,name)
     
     def first_layer_fn(self):
         if self.first_layer:
             fl_config = self.meta_config['first_layer']
             #blk_filters = self.block.config['filters']
             #assert not 'filters' in fl_config.keys(), 'Cannot specify first layer filters they come from block'
-            fl_config['filters'] = self.meta_config['init_filters']
+            #fl_config['filters'] = self.meta_config['init_filters']
+            fl_config['filters'] = self.block.config['filters']
             return lambda x: Conv2D(**fl_config)(x)
         else:
             return None
@@ -83,7 +84,7 @@ class UNet(MetaModel):
         return lambda x: Conv2D(**conv_config)(x)
     
     def __unet_model_fn(self,inputs):
-        init_filters = self.init_filters
+        #init_filters = self.init_filters
         compression = self.compression
         num_rungs = self.num_rungs 
         block = self.block 
@@ -91,7 +92,7 @@ class UNet(MetaModel):
         out = inputs
         end_points = [0]*(num_rungs)
 
-        num_filters = init_filters
+        num_filters = block.config['filters']
         for i in range(num_rungs):
             
             out = block.base_block(tag = str(i),
