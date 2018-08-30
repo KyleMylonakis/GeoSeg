@@ -47,8 +47,8 @@
       }
     },
     "train": {
-        "data":"fga_data_set/train/data_bucket_1.npy",
-        "labels":"fga_data_set/train/label_bucket_1.npy",
+        "data":"PATH/TO/TRAIN/DATA.npy",
+        "labels":"PATH/TO/TRAIN/LABELS.npy",
         "downsample": 125,
         "optimizer":{
             "algorithm": "nadam",
@@ -60,8 +60,8 @@
         "shuffle": true
     },
     "eval":{
-        "data":"fga_data_set/eval/data_bucket_2.npy",
-        "labels":"fga_data_set/eval/label_bucket_2.npy",
+        "data":"PATH/TO/EVAL/DATA.npy",
+        "labels":"PATH/TO/EVAL/LABELS.npy",
         "batch_size": 32,
         "shuffle": false
     }
