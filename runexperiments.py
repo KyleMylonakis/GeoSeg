@@ -1,0 +1,164 @@
+import numpy as np 
+
+import keras
+from keras.optimizers import SGD, Adam, Nadam, Adadelta
+from keras.utils import plot_model
+from keras.callbacks import History
+
+from data_utils import interface_groundtruth_1d
+from data_utils import interface_groundtruth_max
+import argparse
+
+from blocks.DenseBlock import DenseBlock
+from blocks.ConvBlock import ConvBlock, ResBlock
+from meta_arch.UNet import UNet
+from meta_arch.AutoEncoder import AutoEncoder
+from meta_arch.ConvNet import CNN
+
+import json
+import os 
+
+MODEL_TYPES = {
+        'UNet': UNet,
+        'AE': AutoEncoder,
+        'CNN': CNN
+        }
+
+OPTIMIZERS = {
+        'sgd': SGD,
+        'nadam': Nadam,
+        'adam': Adam,
+        'adadelta':Adadelta
+        }
+
+BLOCKS = {
+        'dense': DenseBlock,
+        'res': ResBlock,
+        'conv': ConvBlock
+}
+
+choices_msg = "Expected {} to be from {} but got {}"
+if __name__ == '__main__':
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--config',
+                        help='Path to experiment config json file',
+                        type = str)
+        parser.add_argument('--save-dir',
+                        help = 'The directory to save the model and experiments config file',
+                        type = str,
+                        default = 'test')
+
+        args = parser.parse_args()
+
+        with open(args.config,'r') as fc:
+                exp_config = json.load(fc)
+
+        # Get the individual configs
+        model_config = exp_config['model']
+        meta_arch_config = model_config['meta_arch']
+        block_config = model_config['block']
+
+        train_config = exp_config['train']
+        eval_config = exp_config['eval']
+
+        model_type = model_config['meta_arch']['name']
+        block_type = model_config['block']['name']
+        
+        assert model_type in MODEL_TYPES.keys(), choices_msg.format('meta_arch name',MODEL_TYPES.keys(),model_type)
+        assert block_type in BLOCKS.keys(), choices_msg.format('block name', BLOCKS.keys(), block_type)
+        
+        # Handle the data
+        # Load Data
+        ds_fact = train_config['downsample']
+        epochs = train_config['epochs'] 
+        shuffle = train_config['shuffle']
+        batch_size = train_config['batch_size']
+
+        x_train = np.load(train_config['data']).astype(np.float32)
+        y_train = np.load(train_config['labels']).astype(np.float32)
+        
+        x_eval = np.load(eval_config['data']).astype(np.float32)
+        y_eval = np.load(eval_config['labels']).astype(np.float32)
+        
+        # Downsample temporal resolution
+        assert x_train.shape[1] % ds_fact == 0, 'The downsample factor, %d, must divide the initial sample size %d'%(ds_fact,x_all.shape[1])
+        x_train = x_train[:,::ds_fact,...]
+        x_eval = x_eval[:,::ds_fact,...]
+
+        assert x_train.shape[0] == y_train.shape[0], 'Number of samples does not match between station data and their labels'
+
+        # Process labels
+        # TODO: Make the label processor a choosable from the config. 
+        y_train = interface_groundtruth_max(y_train, output_shape=x_train.shape[1])
+        y_eval = interface_groundtruth_max(y_eval, output_shape=x_train.shape[1])
+        
+        # Initiate block and model instance
+        #
+        
+        # Block instance
+        block = BLOCKS[block_type](block_config)
+        #block = DenseBlock()
+
+        # Create meta_arch instance        
+        model = MODEL_TYPES[model_type](block = block, meta_config = meta_arch_config)
+        
+        if model_type == 'CNN':
+                red_factor = 2**(meta_arch_config['num_layers'])
+
+                y_train = y_train[:,::red_factor,...]
+                y_eval = y_eval[:,::red_factor,...]
+
+                model = model.build_model(input_shape=x_train.shape[1:], output_shape=y_train.shape[1])
+        
+        else:
+                model = model.build_model(input_shape=x_train.shape[1:])
+
+        # Get the optimizer
+        optimizer_type = train_config['optimizer']['algorithm']
+        assert optimizer_type in OPTIMIZERS.keys(), choices_msg.format('optimizer',OPTIMIZERS.keys(),optimizer_type)
+        optimizer_config = train_config['optimizer']['parameters']
+        optimizer = OPTIMIZERS[optimizer_type](**optimizer_config)
+        
+        model.compile(optimizer=optimizer,
+                loss='categorical_crossentropy',
+                metrics=['accuracy'])
+        
+        # Record training loss
+        history = History()
+        model.fit(x_train,y_train,
+                epochs=epochs,
+                shuffle=shuffle,
+                batch_size=batch_size,
+                callbacks = [history])
+        
+        model.evaluate(x_eval, y_eval)
+        
+        if not os.path.isdir(args.save_dir):
+                os.makedirs(args.save_dir)
+        
+        # Specify experiment outputs
+        model_path = os.path.join(args.save_dir,'model.h5')
+        config_path = os.path.join(args.save_dir,'config.json')
+        loss_path = os.path.join(args.save_dir,'loss.json')
+        
+        model.save(model_path)
+
+        with open(config_path,'w') as fc, open(loss_path,'w') as fl:
+                json.dump(exp_config,fc, indent= 2)
+                json.dump(history.history, fl, indent= 2)
+
+        
+        """
+        num_predictions = 10
+        y_pred = model.predict(x_eval[:num_predictions,...], batch_size=1)
+        y_act = y_eval[:num_predictions,...]
+
+        np.save('y_pred_test.npy', y_pred)
+        np.save('y_actual_test.npy', y_act)
+
+        model.save('FGANET.h5')
+
+
+
+        plot_model(model)"""
