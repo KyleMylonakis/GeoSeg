@@ -84,8 +84,6 @@ class ConvBlock(Blocks):
     def down_sample(self,tag,filters):
         down_config = self.trans_config
         blk_name = '/'.join([self.config['name'],tag])
-        print('down config:', down_config)
-        print('down filters:', filters)
         return lambda x: building_blocks.transition_layer(inputs = x,
                                     filters=filters,
                                     name = blk_name,
@@ -128,8 +126,6 @@ class ResBlock(ConvBlock):
     
     def base_block(self,tag,filters):
         bs_config = self.base_config
-        print(bs_config)
-        print('bs filters: ',filters)
         blk_name = '/'.join(['base',self.config['name']+tag])
         def result_fn(inputs):
             out = self.base_fn(inputs,

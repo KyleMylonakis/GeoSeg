@@ -99,25 +99,17 @@ class AutoEncoder(MetaModel):
         num_filters = block.config['filters']
         
         
-        for i in range(num_layers):
-            
-            #num_filters = num_filters*compression
-            # 48x3x6
-            
+        for i in range(num_layers):            
             out = block.base_block(tag ='down_'+ str(i),
                             filters = num_filters)(out)
             
             
             num_filters = num_filters*compression
-            #24x3x12
-            print('new filters:',num_filters)
             out = block.down_sample(tag = str(i), 
                             filters = num_filters)(out)
             
 
         for i in range(num_layers):
-            print('up %d'%i)
-            #num_filters = int(num_filters // compression)
             out = block.base_block(tag = 'up_'+str(i),
                             filters = num_filters)(out)
             num_filters = int(num_filters // compression)

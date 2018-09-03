@@ -123,7 +123,7 @@ def transition_layer(inputs,filters,
         raise ValueError(msg.format(up_or_down))
     
     #filters = int(filters*filter_factor)
-    print('transition filters:', filters)
+    #print('transition filters:', filters)
     out = Conv2D(filters=filters,
                 kernel_size=(1,3),
                 strides = (1,1),
