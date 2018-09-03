@@ -6,7 +6,7 @@
         "init_filters": 4,
         "compression": 2,
         "num_classes": 2,
-        "num_rungs": 2,
+        "num_layers": 2,
         "first_layer": {
             "padding": "same",
             "activation": "relu",
