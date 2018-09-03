@@ -117,9 +117,11 @@ class ConvBlock(Blocks):
             return out
         return result_fn
     
-    def up_sample(self,tag,filters):
+    def up_sample(self,tag,filters, padding = None):
         up_config = self.trans_config
         blk_name = '/'.join([self.config['name'],tag])
+        if padding:
+            up_config['padding'] = padding
         # Wrap the base function into a function
         # to match keras layer style.
         return lambda x: building_blocks.transition_layer(inputs = x,
@@ -128,9 +130,11 @@ class ConvBlock(Blocks):
                                     up_or_down='up', 
                                     **up_config) # Unwrap the extra parameters
     
-    def down_sample(self,tag,filters):
+    def down_sample(self,tag,filters, padding = None):
         down_config = self.trans_config
         blk_name = '/'.join([self.config['name'],tag])
+        if padding:
+            down_config['padding'] = padding
         # Wrap the base function into a function
         # to match keras layer style.
         return lambda x: building_blocks.transition_layer(inputs = x,

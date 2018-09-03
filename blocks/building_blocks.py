@@ -219,6 +219,7 @@ def transition_layer(inputs,filters,
                     up_or_down = 'down',
                     kernel_size = 2,
                     activation = 'relu',
+                    padding = 'same',
                     name = 'transition'):
     """
     A layer to either up or down sample the first dimension
@@ -264,7 +265,7 @@ def transition_layer(inputs,filters,
                 kernel_size=(1,3),
                 strides = (1,1),
                 activation = activation,
-                padding='same',
+                padding=padding,
                 name = name+'/conv')(inputs)
 
     if up_or_down == 'down':
@@ -272,14 +273,15 @@ def transition_layer(inputs,filters,
                 kernel_size=(kernel_size,3),
                 strides = (compression,1),
                 activation = activation,
-                padding='same',
+                padding=padding,
                 name = name+'/conv_dwn')(out)
     elif up_or_down == 'up':
+        print('layer compression: ',compression)
         out = out = Conv2DTranspose(filters=filters,
                 kernel_size=(kernel_size,3),
                 strides = (compression,1),
                 activation =activation,
-                padding='same',
+                padding=padding,
                 name = name+'/conv_dwn')(out)
     return out 
 
