@@ -30,12 +30,10 @@
           ]
         }},
       "block": {
-        "name": "dense",
-        "filters": 3,
+        "name": "conv",
         "base": {
           "kernel_size": 3,
           "dropout": 0.5,
-          "num_layers": 4,
           "bottleneck": true,
           "activation": "relu"
         },
