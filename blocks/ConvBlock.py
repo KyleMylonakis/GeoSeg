@@ -1,3 +1,6 @@
+#
+#   Convolution Block class and Residual Unit Block Class
+#      
 from keras.layers import  Conv2D, ReLU, Dropout, BatchNormalization
 from keras.layers import Conv2DTranspose
 from keras.layers import Activation
@@ -10,7 +13,6 @@ class ConvBlock(Blocks):
     def __init__(self, 
                 config = None,
                 filters = 4,
-                block_layers = 4,
                 base_kernel = 3,
                 trans_kernel = 2,
                 batch_norm = False,
@@ -19,37 +21,74 @@ class ConvBlock(Blocks):
                 dropout = 0.5,
                 compression = 2,
                 bottleneck = True,
-                name = 'dense_block',
-                config_path ='dense_block'):
-
-        if config is None:
-            block_config = {
+                bottleneck_factor = 4,
+                name = 'ConvBlock'):
+        """
+        A Block object which represents a basic convolutional block composed of 
+        conv_layers and bn_conv_layers from building_blocks.py. The down and up sample
+        blocks reduce the resolution. To maintain a similar number of parameters
+        the compression term expands or contracts the number of feature maps 
+        to compenesate. 
+        
+        Parameters:
+        -----------
+            config: A configuration for the block. Containing all of the 
+                remaining kwargs.(dict)
+            filters: Number of filters for the base_block. (int)
+            base_kernel: Kernel size for base block.(int)
+            trans_kernel: Kernel size for up and down sample blocks. (int)
+            batch_norm: Whether base block has BN. (bool)
+            base_activation: A keras activation function for the base block. (str)
+            trans_activation: A keras activation function for the up and down sample blocks. (str)
+            dropout: Dropout probability to use for all layers. (float)
+            compression: Compression factor for transition blocks. For down_sample it increases
+                channels by factor compresssion and visa versa for up sample. Currently should be set
+                to 2. (int)
+            bottleneck: Whether base block has a 1x1 bottleneck before convolutions. (bool)
+            bottleneck_factor: The factor to expand feature maps by for a bottleneck. Will put a 
+                1x1 convolution with filters*bottleneck_factor filters before the actual conv layer. (int)
+            name: A name for the block. 
+        
+        Returns:
+        --------
+            A Block object. 
+        """
+        # Set a default config
+        # in case configuration is missing parameters.
+        default_config = {
                     'name':name,
                     'base':{},
                     'transition':{},
                     'batch_norm': batch_norm
                     }
-            base_config = {}
-            transition_config = {}
-            
-            base_config ['kernel_size'] = base_kernel
-            base_config['dropout'] = dropout
-            base_config['num_layers'] = block_layers
-            base_config['bottleneck'] = bottleneck
-            base_config['activation'] = base_activation
+        base_config = {}
+        transition_config = {}
+        
+        base_config ['kernel_size'] = base_kernel
+        base_config['dropout'] = dropout
+        base_config['bottleneck'] = bottleneck
+        base_config['bottleneck_factor'] = bottleneck_factor
+        base_config['activation'] = base_activation
 
-            transition_config['kernel_size'] = trans_kernel
-            transition_config['compression'] = compression
-            transition_config['activation'] = trans_activation
+        transition_config['kernel_size'] = trans_kernel
+        transition_config['compression'] = compression
+        transition_config['activation'] = trans_activation
 
-            block_config['base'] = base_config
-            block_config['transition'] = transition_config
-            
+        default_config['base'] = base_config
+        default_config['transition'] = transition_config
+        
+        if config is None:
+            block_config = default_config
         else:
+            # Get the config and add in any
+            # missing keys
             block_config = config
+
+            missing_keys = [k for k in default_config if k not in block_config.keys()]
+            for k in missing_keys:
+                block_config[k] = default_config[k]
         
         super().__init__(name, block_config)
-        
         
         self.batch_norm = block_config['batch_norm']
         self.name = block_config['name']
@@ -102,8 +141,8 @@ class ResBlock(ConvBlock):
                 dropout = 0.5,
                 compression = 2,
                 bottleneck = True,
-                name = 'residual_block',
-                config_path ='residual_block'):
+                bottleneck_factor = 4,
+                name = 'ResBlock'):
     
         super().__init__( 
                 config = config,
@@ -116,8 +155,8 @@ class ResBlock(ConvBlock):
                 dropout = dropout,
                 compression = compression,
                 bottleneck = bottleneck,
-                name = name,
-                config_path =config_path)
+                bottleneck_factor=bottleneck_factor,
+                name = name)
         
         if self.config['batch_norm']:
             self.base_fn = building_blocks.bn_residual_layer
