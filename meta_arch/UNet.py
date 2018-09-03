@@ -56,7 +56,7 @@ class UNet(CNN):
 
         num_filters = block.config['filters']
         for i in range(num_layers):
-            
+            print('down in',i,num_filters)
             out = block.base_block(tag = str(i),
                             filters = num_filters)(out)
             
@@ -65,7 +65,8 @@ class UNet(CNN):
             out = block.down_sample(tag = str(i), 
                             filters = num_filters)(out)
             end_points[i] = out
-            
+            print('down out: ',i,num_filters)
+
         num_filters = num_filters*compression
         out = block.down_sample(tag = 'bridge', 
                         filters = num_filters)(out)
@@ -74,16 +75,19 @@ class UNet(CNN):
 
         for i in range(num_layers):
             fine_in = end_points[i]
+            print('up in: ',i,num_filters)
             num_filters = int(num_filters // compression)
             coarse_in = block.up_sample(tag = str(i), 
                                 filters = num_filters)(out)
             out = Concatenate()([coarse_in,fine_in])
+            print('up out: ',i,num_filters)
         
         fine_in = inputs
         num_filters = int(num_filters // compression)
         coarse_in = block.up_sample(tag = str(num_layers+1), 
                             filters = num_filters)(out)
         out = Concatenate()([coarse_in,fine_in])
+        assert False
         return out 
 
     

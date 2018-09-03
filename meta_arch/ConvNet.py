@@ -21,14 +21,14 @@ class CNN(MetaModel):
                 final_activation = 'softmax',
                 final_name = 'softmax'):
 
-        default_config = {
+        default_meta_config = {
                 'name': name,
                 'compression': compression,
                 'init_filters': init_filters,
-                'num_classes': num_classes,
-                'num_layers': num_layers,
-                'final_layer': 
-                {
+                'num_classes': num_classes               
+            } 
+        
+        default_meta_config['final_layer'] =   {
                     'filters': num_classes,
                     'kernel_size':final_kernel_size,
                     'strides': final_strides,
@@ -36,20 +36,18 @@ class CNN(MetaModel):
                     'activation': final_activation,
                     'name': final_name
                 }
-            } 
         
         if meta_config is None:
-            meta_config = default_config
+            meta_config = default_meta_config
         else:
             # Get the config and add in any
             # missing keys
-            meta_config = default_config
 
-            missing_keys = [k for k in default_config if k not in meta_config.keys()]
+            missing_keys = [k for k in default_meta_config if k not in meta_config.keys()]
             for k in missing_keys:
-                meta_config[k] = default_config[k]
+                meta_config[k] = default_meta_config[k]
 
-        if first_layer is not None:
+        if first_layer is not None or 'first_layer' in meta_config.keys():
             first_layer_config = {
                         'kernel_size': first_kernel_size,
                         'activation': first_activation,
@@ -60,14 +58,14 @@ class CNN(MetaModel):
         # Put everything into a model config
         model_config = {'model':{'meta_arch':meta_config}}
         model_config['model']['block'] = block.config
-
+        print(model_config)
         # Set some useful attributes
         self.num_layers = meta_config['num_layers']
         self.compression = meta_config['compression']
         self.num_classes = meta_config['num_classes']
         self.block = block
         
-        if 'first_layer' in model_config.keys():
+        if 'first_layer' in meta_config.keys():
             self.first_layer = True
         else:
             self.first_layer = False
