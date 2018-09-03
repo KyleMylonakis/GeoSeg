@@ -24,11 +24,13 @@ class ConvBlock(Blocks):
                 bottleneck_factor = 4,
                 name = 'ConvBlock'):
         """
-        A Block object which represents a basic convolutional block composed of 
-        conv_layers and bn_conv_layers from building_blocks.py. The down and up sample
-        blocks reduce the resolution. To maintain a similar number of parameters
-        the compression term expands or contracts the number of feature maps 
-        to compenesate. 
+        A Block object which represents a basic convolutional block with:
+            base_block: building_blocks.conv_layer  (or bn_conv_layer)
+            up_sample: building_blocks.transition_layer("up")
+            down_sample: building_blocks.transition_layer("down)
+        The down and up sample blocks reduce the resolution. To maintain 
+        a similar number of parameters the compression term expands or 
+        contracts the number of feature maps to compenesate. 
         
         Parameters:
         -----------
@@ -76,7 +78,7 @@ class ConvBlock(Blocks):
 
         default_config['base'] = base_config
         default_config['transition'] = transition_config
-        
+
         if config is None:
             block_config = default_config
         else:
@@ -95,6 +97,8 @@ class ConvBlock(Blocks):
         self.base_config = block_config['base']
         self.trans_config = block_config['transition']
 
+        # Get conv_layer or bn_conv_layer
+        # for the base block.
         if self.batch_norm:
             self.base_fn = building_blocks.bn_conv_layer
         else:
@@ -103,31 +107,37 @@ class ConvBlock(Blocks):
     def base_block(self,tag,filters):
         bs_config = self.base_config
         blk_name = '/'.join(['base',self.config['name']+tag])
+        # Wrap the base function into a function
+        # to match keras layer style.
         def result_fn(inputs):
             out = self.base_fn(inputs,
                                 filters=filters, 
                                 name = blk_name,
-                                **bs_config)
+                                **bs_config) # Unwrap the extra parameters
             return out
         return result_fn
     
     def up_sample(self,tag,filters):
         up_config = self.trans_config
         blk_name = '/'.join([self.config['name'],tag])
+        # Wrap the base function into a function
+        # to match keras layer style.
         return lambda x: building_blocks.transition_layer(inputs = x,
                                     filters=filters,
                                     name = blk_name,
                                     up_or_down='up', 
-                                    **up_config)
+                                    **up_config) # Unwrap the extra parameters
     
     def down_sample(self,tag,filters):
         down_config = self.trans_config
         blk_name = '/'.join([self.config['name'],tag])
+        # Wrap the base function into a function
+        # to match keras layer style.
         return lambda x: building_blocks.transition_layer(inputs = x,
                                     filters=filters,
                                     name = blk_name,
                                     up_or_down='down', 
-                                    **down_config)
+                                    **down_config) # Unwrap the extra parameters
 
 class ResBlock(ConvBlock):
     def __init__(self, 
@@ -143,7 +153,38 @@ class ResBlock(ConvBlock):
                 bottleneck = True,
                 bottleneck_factor = 4,
                 name = 'ResBlock'):
-    
+        """
+        A Block object which represents a basic residual block with:
+            base_block: building_blocks.residual_layer  (or bn_residual_layer)
+            up_sample: building_blocks.transition_layer("up")
+            down_sample: building_blocks.transition_layer("down)
+        The down and up sample blocks reduce the resolution. To maintain 
+        a similar number of parameters the compression term expands or 
+        contracts the number of feature maps to compenesate. 
+        
+        Parameters:
+        -----------
+            config: A configuration for the block. Containing all of the 
+                remaining kwargs.(dict)
+            filters: Number of filters for the base_block. (int)
+            base_kernel: Kernel size for base block.(int)
+            trans_kernel: Kernel size for up and down sample blocks. (int)
+            batch_norm: Whether base block has BN. (bool)
+            base_activation: A keras activation function for the base block. (str)
+            trans_activation: A keras activation function for the up and down sample blocks. (str)
+            dropout: Dropout probability to use for all layers. (float)
+            compression: Compression factor for transition blocks. For down_sample it increases
+                channels by factor compresssion and visa versa for up sample. Currently should be set
+                to 2. (int)
+            bottleneck: Whether base block has a 1x1 bottleneck before convolutions. (bool)
+            bottleneck_factor: The factor to expand feature maps by for a bottleneck. Will put a 
+                1x1 convolution with filters*bottleneck_factor filters before the actual conv layer. (int)
+            name: A name for the block. 
+        
+        Returns:
+        --------
+            A Block object. 
+        """
         super().__init__( 
                 config = config,
                 filters = filters,
@@ -158,11 +199,13 @@ class ResBlock(ConvBlock):
                 bottleneck_factor=bottleneck_factor,
                 name = name)
         
+        # Override the ConvBlock base_fn
         if self.config['batch_norm']:
             self.base_fn = building_blocks.bn_residual_layer
         else:
             self.base_fn = building_blocks.residual_layer
     
+    # Override the ConvBlock base_block
     def base_block(self,tag,filters):
         bs_config = self.base_config
         blk_name = '/'.join(['base',self.config['name']+tag])
@@ -173,13 +216,4 @@ class ResBlock(ConvBlock):
                                 **bs_config)
             return out
         return result_fn
-    
-    def up_sample(self,tag,filters):
-        up_config = self.trans_config
-        blk_name = '/'.join([self.config['name'],tag])
-        return lambda x: building_blocks.transition_layer(inputs = x,
-                                    filters=filters,
-                                    name = blk_name,
-                                    up_or_down='up', 
-                                    **up_config)
     
