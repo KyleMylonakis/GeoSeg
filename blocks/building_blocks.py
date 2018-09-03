@@ -4,7 +4,7 @@
 # but can be used in any network that supports block structure
 
 # References:
-#   1) Huang, Lui (2016): https://arxiv.org/pdf/1608.06993.pdf
+#   1) Huang, Lui (2016), Densely Connected Convolutional Networks: https://arxiv.org/pdf/1608.06993.pdf
 #   2) Ioffe, Sergey; Szegedy, Christian (2015): https://arxiv.org/abs/1502.03167
 #   3) Dmytro Mishkin and Nikolay Sergievskiy and Jiri Matas (2017): http://www.sciencedirect.com/science/article/pii/S1077314217300814
 from keras.layers import  Conv2D, Concatenate, Dropout, BatchNormalization
