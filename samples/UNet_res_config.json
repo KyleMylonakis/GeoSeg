@@ -6,7 +6,7 @@
         "init_filters": 3,
         "compression": 2,
         "num_classes": 2,
-        "num_rungs": 4,
+        "num_layers": 4,
         "first_layer": {
             "padding": "same",
             "activation": "relu",
@@ -49,7 +49,7 @@
     "train": {
         "data":"fga_data_set/train/data_bucket_1.npy",
         "labels":"fga_data_set/train/label_bucket_1.npy",
-        "downsample": 125,
+        "downsample": 25,
         "optimizer":{
             "algorithm": "nadam",
             "parameters":{

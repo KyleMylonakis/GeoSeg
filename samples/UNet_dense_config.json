@@ -1,12 +1,9 @@
 {
     "model": {
-      "num_classes": 2,
       "meta_arch": {
         "name": "UNet",
-        "init_filters": 4,
-        "compression": 2,
         "num_classes": 2,
-        "num_layers": 2,
+        "compression": 2,
         "first_layer": {
             "padding": "same",
             "activation": "relu",
