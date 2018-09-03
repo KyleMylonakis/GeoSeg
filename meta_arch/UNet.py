@@ -28,7 +28,6 @@ class UNet(CNN):
                         num_layers=num_layers,
                         num_classes=num_classes,
                         compression=compression,
-                        init_filters = 4,
                         name = name,
                         block = block,
                         first_layer = first_layer,
