@@ -21,9 +21,8 @@ class CNN(MetaModel):
                 final_activation = 'softmax',
                 final_name = 'softmax'):
 
-        if meta_config is None:
-            meta_config = {
-                'name': 'UNet',
+        default_config = {
+                'name': name,
                 'compression': compression,
                 'init_filters': init_filters,
                 'num_classes': num_classes,
@@ -37,17 +36,32 @@ class CNN(MetaModel):
                     'activation': final_activation,
                     'name': final_name
                 }
-            }
-            if first_layer is not None:
-                first_layer_config = {
-                            'kernel_size': first_kernel_size,
-                            'activation': first_activation,
-                            'filters':init_filters
-                                    }
-                meta_config['first_layer'] = first_layer_config
-            
+            } 
+        
+        if meta_config is None:
+            meta_config = default_config
+        else:
+            # Get the config and add in any
+            # missing keys
+            meta_config = default_config
+
+            missing_keys = [k for k in default_config if k not in meta_config.keys()]
+            for k in missing_keys:
+                meta_config[k] = default_config[k]
+
+        if first_layer is not None:
+            first_layer_config = {
+                        'kernel_size': first_kernel_size,
+                        'activation': first_activation,
+                        'filters':init_filters
+                                }
+            meta_config['first_layer'] = first_layer_config
+
+        # Put everything into a model config
         model_config = {'model':{'meta_arch':meta_config}}
         model_config['model']['block'] = block.config
+
+        # Set some useful attributes
         self.num_layers = meta_config['num_layers']
         self.compression = meta_config['compression']
         self.num_classes = meta_config['num_classes']
@@ -58,7 +72,7 @@ class CNN(MetaModel):
         else:
             self.first_layer = False
             
-        super().__init__(init_filters, model_config,name)
+        super().__init__( model_config,config_path= name)
 
     def first_layer_fn(self):
         if self.first_layer:
@@ -69,14 +83,14 @@ class CNN(MetaModel):
         else:
             return None       
     
-    def main_model_fn(self):
-        return lambda x: self.__CNN_fn(x)
-    
     def final_layer_fn(self):
         conv_config = self.meta_config['final_layer']
         if not 'filters' in conv_config.keys():
             conv_config['filters'] = self.num_classes        
         return lambda x: Conv2D(**conv_config)(x)
+    
+    def main_model_fn(self):
+        return lambda x: self.__CNN_fn(x)
     
     def __CNN_fn(self, inputs):
         out = inputs
