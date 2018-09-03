@@ -58,7 +58,6 @@ class CNN(MetaModel):
         # Put everything into a model config
         model_config = {'model':{'meta_arch':meta_config}}
         model_config['model']['block'] = block.config
-        print(model_config)
         # Set some useful attributes
         self.num_layers = meta_config['num_layers']
         self.compression = meta_config['compression']
