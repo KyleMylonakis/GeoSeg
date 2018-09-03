@@ -276,7 +276,6 @@ def transition_layer(inputs,filters,
                 padding=padding,
                 name = name+'/conv_dwn')(out)
     elif up_or_down == 'up':
-        print('layer compression: ',compression)
         out = out = Conv2DTranspose(filters=filters,
                 kernel_size=(kernel_size,3),
                 strides = (compression,1),
