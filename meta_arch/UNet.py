@@ -39,8 +39,9 @@ class UNet(CNN):
                         final_padding = final_padding,
                         final_activation = final_activation,
                         final_name = final_name)
-    
+        #self.dump_config('peek')
     # Override CNN's main_model_fn method.
+        self.dump_config('peek')
     def main_model_fn(self):
         return lambda x:self.__unet_model_fn(x)
     
@@ -55,7 +56,7 @@ class UNet(CNN):
 
         num_filters = block.config['filters']
         for i in range(num_layers):
-            print('down in',i,num_filters)
+            print('down in:',i)
             out = block.base_block(tag = str(i),
                             filters = num_filters)(out)
             
@@ -64,29 +65,31 @@ class UNet(CNN):
             out = block.down_sample(tag = str(i), 
                             filters = num_filters)(out)
             end_points[i] = out
-            print('down out: ',i,num_filters)
-
+            print('down out: ',i)
+        print('bridge')
         num_filters = num_filters*compression
         out = block.down_sample(tag = 'bridge', 
-                        filters = num_filters)(out)
+                        filters = num_filters, padding = "same")(out)
         
         end_points = end_points[::-1]
-
+        print('model compression: ',self.compression)
         for i in range(num_layers):
+            print('up on: ',i)
             fine_in = end_points[i]
-            print('up in: ',i,num_filters)
             num_filters = int(num_filters // compression)
             coarse_in = block.up_sample(tag = str(i), 
-                                filters = num_filters)(out)
+                                filters = num_filters, padding = "valid")(out)
             out = Concatenate()([coarse_in,fine_in])
-            print('up out: ',i,num_filters)
+            #out = Concatenate()([fine_in,coarse_in])
+            print('up out: ',i)
+
         
         fine_in = inputs
         num_filters = int(num_filters // compression)
         coarse_in = block.up_sample(tag = str(num_layers+1), 
                             filters = num_filters)(out)
         out = Concatenate()([coarse_in,fine_in])
-        assert False
         return out 
 
+    
     

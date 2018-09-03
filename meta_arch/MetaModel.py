@@ -4,22 +4,21 @@ from keras.layers import Reshape
 import json 
 
 class MetaModel(ABC):
-    def __init__(self,config, config_path=None):
+    def __init__(self,config):
         
         super().__init__()
-        self.config_path = config_path
         self.config = config
         self.meta_config = config['model']['meta_arch']
-
-        if not config_path is None:
-            with open(config_path+'.json','w') as f:
-                json.dump(config,f,indent=2)
         
         if self.config['model']['block']['name'] == 'res':
             print('RESIDUAL BLOCK DETECTED')
             msg = "Residual blocks must have a first layer"
             assert self.first_layer, msg
     
+    def dump_config(self,path):
+        with open(path+'.json','w') as f:
+                json.dump(self.config,f,indent=2)
+
     @abstractmethod
     def main_model_fn(self):
         pass 
