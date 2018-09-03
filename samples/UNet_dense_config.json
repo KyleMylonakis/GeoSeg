@@ -4,6 +4,7 @@
         "name": "UNet",
         "num_classes": 2,
         "compression": 2,
+        "num_layers": 2,
         "first_layer": {
             "padding": "same",
             "activation": "relu",
