@@ -135,6 +135,7 @@ def residual_layer(inputs,
             kernel_size = 3,
             dropout = 0.5,
             bottleneck = True,
+            bottleneck_factor = 4,
             name = 'residual'):
     """
     A residual version of the usual convolution blocks.
@@ -160,11 +161,12 @@ def residual_layer(inputs,
         A tensor of shape (N,3,filters)
     """
     out = conv_layer(inputs,
-            activation = 'relu',
+            activation = activation,
             filters = filters,
-            kernel_size = 3,
-            dropout = 0.5,
-            bottleneck = True,
+            kernel_size = kernel_size,
+            dropout = dropout,
+            bottleneck = bottleneck,
+            bottleneck_factor=bottleneck_factor,
             name = name+'conv')
     
     out = Add()([out,inputs])
@@ -202,11 +204,11 @@ def bn_residual_layer(inputs,
         A tensor of shape (N,3,filters)
     """
     out = bn_conv_layer(inputs,
-            activation = 'relu',
+            activation = activation,
             filters = filters,
-            kernel_size = 3,
-            dropout = 0.5,
-            bottleneck = True,
+            kernel_size = kernel_size,
+            dropout = dropout,
+            bottleneck = bottleneck,
             name = 'conv')
     
     out = Add()([out,inputs])

@@ -13,7 +13,7 @@ class CNN(MetaModel):
                 first_layer = False,
                 first_kernel_size = (3,1),
                 first_activation = 'relu',
-                first_padding = 'padding',
+                first_padding = 'same',
                 final_kernel_size = (1,1),
                 final_strides = (1,3),
                 final_padding = 'same',
@@ -35,24 +35,29 @@ class CNN(MetaModel):
                     'activation': final_activation,
                     'name': final_name
                 }
+        default_first_layer_config = {
+                                'kernel_size': first_kernel_size,
+                                'activation': first_activation,
+                                'padding': first_padding,
+                                }
         
         if meta_config is None:
             
             meta_config = default_meta_config
-            if first_layer is not None:
-                first_layer_config = {
-                            'kernel_size': first_kernel_size,
-                            'activation': first_activation,
-                            'filters':init_filters
-                                    }
-                meta_config['first_layer'] = first_layer_config
+            if first_layer is not None:                                    
+                meta_config['first_layer'] = default_first_layer_config
         else:
             # Get the config and add in any
             # missing keys
 
             missing_keys = [k for k in default_meta_config if k not in meta_config.keys()]
+            #print(missing_keys)
             for k in missing_keys:
                 meta_config[k] = default_meta_config[k]
+            if 'first_layer' in meta_config.keys():
+                first_missing = [k for k in default_first_layer_config if k not in meta_config.keys()]
+                for f in first_missing:
+                    meta_config['first_layer'][f] = default_first_layer_config[f]
 
 
 
@@ -83,8 +88,8 @@ class CNN(MetaModel):
     
     def final_layer_fn(self):
         conv_config = self.meta_config['final_layer']
-        if not 'filters' in conv_config.keys():
-            conv_config['filters'] = self.num_classes        
+        #if not 'filters' in conv_config.keys():
+        conv_config['filters'] = self.num_classes        
         return lambda x: Conv2D(**conv_config)(x)
     
     def main_model_fn(self):

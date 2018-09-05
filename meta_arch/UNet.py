@@ -17,7 +17,7 @@ class UNet(CNN):
                 first_layer = False,
                 first_kernel_size = (3,1),
                 first_activation = 'relu',
-                first_padding = 'padding',
+                first_padding = 'same',
                 final_kernel_size = (1,1),
                 final_strides = (1,3),
                 final_padding = 'same',
@@ -41,7 +41,7 @@ class UNet(CNN):
                         final_name = final_name)
         #self.dump_config('peek')
     # Override CNN's main_model_fn method.
-        self.dump_config('peek')
+        #self.dump_config('peek')
     def main_model_fn(self):
         return lambda x:self.__unet_model_fn(x)
     
