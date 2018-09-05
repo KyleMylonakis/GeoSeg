@@ -61,7 +61,8 @@ class ConvBlock(Blocks):
                     'name':name,
                     'base':{},
                     'transition':{},
-                    'batch_norm': batch_norm
+                    'batch_norm': batch_norm,
+                    'filters': filters
                     }
         base_config = {}
         transition_config = {}
