@@ -18,11 +18,13 @@ if __name__ == '__main__':
                         default = 'fga_data_set/eval/')
 
     args = parser.parse_args()
+    if (args.load_path[-1] != '/'):
+        args.load_path = args.load_path + '/'
 
     # Load the Keras Model
     model_load_path = args.load_path
     print('Loading Keras model ' + model_load_path)
-    model = keras.models.load_model(model_load_path)
+    model = keras.models.load_model(model_load_path + 'model.h5')
 
     if (args.data_path[-1] != '/'):
         args.data_path = args.data_path + '/'
@@ -35,7 +37,8 @@ if __name__ == '__main__':
     y_eval = np.load(label_load_path).astype(np.float32)
 
     # Load the downsample factor
-    config_path = 'test/config.json'
+    #config_path = 'test/config.json'
+    config_path = model_load_path + 'config.json'
     with open(config_path,'r') as fc:
             exp_config = json.load(fc)
 
@@ -62,5 +65,5 @@ if __name__ == '__main__':
 
     # Save output for analysis
     print('Saving actual and predicted output')
-    np.save('y_pred_test.npy', y_pred)
-    np.save('y_actual_test.npy', y_eval)
+    np.save(model_load_path + '/y_pred_test.npy', y_pred)
+    np.save(model_load_path + '/y_actual_test.npy', y_eval)
