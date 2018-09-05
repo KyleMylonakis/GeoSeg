@@ -65,7 +65,7 @@ class AutoEncoder(MetaModel):
         else:
             self.first_layer = False
             
-        super().__init__(model_config,name)
+        super().__init__(model_config)
 
     def first_layer_fn(self):
         if self.first_layer:
