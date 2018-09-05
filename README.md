@@ -17,10 +17,6 @@ The current supported network architectures are UNet, variational autoencoder, f
 clone https://github.com/KyleMylonakis/invert-fga
 ~~~
 
-
-**This code requires a dataset which is not included currently in the repo. It is assumed that the dataset belongs to the subfolder fga_data_set/L7**
-
-
 2. Process the data for training and evaluation:
 ~~~
 bash prepare_data.bash
