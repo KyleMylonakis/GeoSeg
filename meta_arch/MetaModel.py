@@ -41,6 +41,7 @@ class MetaModel(ABC):
 
         out = self.main_model_fn()(out)
         out = self.final_layer_fn()(out)
+        self.dump_config('sup')
         out = Reshape((output_shape,self.meta_config['num_classes']))(out)
 
         model = Model(inputs = inputs, outputs = out)
