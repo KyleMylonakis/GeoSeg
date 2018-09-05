@@ -105,10 +105,10 @@ def bn_conv_layer(inputs,
     # some results get improvements when placing
     # it after. 
     out = BatchNormalization()(out)
-    out = Activation(relu)(out)
+    out = Activation(activation)(out)
 
     if bottleneck:
-        out = Conv2D(filters=num_filters*bottleneck_factor,
+        out = Conv2D(filters=filters*bottleneck_factor,
                     kernel_size=(1,3),
                     strides = (1,1),
                     activation = None,
@@ -119,7 +119,7 @@ def bn_conv_layer(inputs,
         out = BatchNormalization()(out)
         out = Activation(activation)(out)
 
-    out = Conv2D(filters=num_filters,
+    out = Conv2D(filters=filters,
                     kernel_size=(kernel_size,3),
                     strides = (1,1),
                     activation = None,
