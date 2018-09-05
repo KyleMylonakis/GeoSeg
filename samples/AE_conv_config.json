@@ -41,7 +41,7 @@
   "train": {
     "data": "fga_data_set/train/data_bucket_1.npy",
     "labels": "fga_data_set/train/label_bucket_1.npy",
-    "downsample": 125,
+    "downsample": 25,
     "optimizer": {
       "algorithm": "nadam",
       "parameters": {
@@ -49,8 +49,9 @@
       }
     },
     "batch_size": 512,
-    "epochs": 100,
-    "shuffle": true
+    "epochs": 1000,
+    "shuffle": true,
+    "save_every" : 100
   },
   "eval": {
     "data": "fga_data_set/eval/data_bucket_2.npy",

@@ -3,7 +3,7 @@ import numpy as np
 import keras
 from keras.optimizers import SGD, Adam, Nadam, Adadelta
 from keras.utils import plot_model
-from keras.callbacks import History
+from keras.callbacks import History, TensorBoard, ModelCheckpoint
 
 from data_utils import interface_groundtruth_1d
 from data_utils import interface_groundtruth_max
@@ -120,27 +120,44 @@ if __name__ == '__main__':
         optimizer_config = train_config['optimizer']['parameters']
         optimizer = OPTIMIZERS[optimizer_type](**optimizer_config)
         
+        mdl_chkpt_path = os.path.join(args.save_dir,'model_chkpt.hdf5')
+        if os.path.exists(mdl_chkpt_path):
+                print("Loading model from existing checkpont ", mdl_chkpt_path)
+                model.load_weights(mdl_chkpt_path)
+
+
         model.compile(optimizer=optimizer,
                 loss='categorical_crossentropy',
                 metrics=['accuracy'])
         
-        # Record training loss
+        # Record training loss and initialize callbacks for logging and saving
         history = History()
+
+        if not os.path.isdir(args.save_dir):
+                os.makedirs(args.save_dir)
+
+        # Make logs directory for tensorboard if needed
+        if not os.path.isdir(args.save_dir +'/logs/'):
+                os.makedirs(args.save_dir + '/logs/')
+        
+        model_path = os.path.join(args.save_dir,'model.h5')
+        config_path = os.path.join(args.save_dir,'config.json')
+        loss_path = os.path.join(args.save_dir,'loss.json')
+        
+        save_every = train_config['save_every']
+        tensorboard = TensorBoard(log_dir=args.save_dir + '/logs/', batch_size=batch_size, write_images=True)
+        mdl_chkpt = ModelCheckpoint(mdl_chkpt_path, monitor='val_acc',verbose=1,  period=save_every)
+
+
         model.fit(x_train,y_train,
                 epochs=epochs,
                 shuffle=shuffle,
                 batch_size=batch_size,
-                callbacks = [history])
+                callbacks = [history, tensorboard, mdl_chkpt])
         
         model.evaluate(x_eval, y_eval)
         
-        if not os.path.isdir(args.save_dir):
-                os.makedirs(args.save_dir)
-        
         # Specify experiment outputs
-        model_path = os.path.join(args.save_dir,'model.h5')
-        config_path = os.path.join(args.save_dir,'config.json')
-        loss_path = os.path.join(args.save_dir,'loss.json')
         
         model.save(model_path)
 
