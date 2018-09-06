@@ -72,12 +72,16 @@ class UNet(CNN):
         end_points = end_points[::-1]
         for i in range(num_layers):
             fine_in = end_points[i]
+
             num_filters = int(num_filters // compression)
-            coarse_in = block.up_sample(tag = str(i), 
+
+            out = block.up_sample(tag = str(i), 
                                 filters = num_filters)(out)
+            
+            coarse_in = block.base_block(tag = 'up_'+str(i),
+                            filters = num_filters)(out)
             out = Concatenate()([coarse_in,fine_in])
 
-        
         fine_in = inputs
         num_filters = int(num_filters // compression)
         coarse_in = block.up_sample(tag = str(num_layers+1), 
