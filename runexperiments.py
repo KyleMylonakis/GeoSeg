@@ -162,6 +162,7 @@ if __name__ == '__main__':
                 epochs=epochs,
                 shuffle=shuffle,
                 batch_size=batch_size,
+                validation_data=(x_eval,y_eval),
                 callbacks = [history, tensorboard, mdl_chkpt])
         
         model.evaluate(x_eval, y_eval)
