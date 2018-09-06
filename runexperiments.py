@@ -146,7 +146,13 @@ if __name__ == '__main__':
         
         save_every = train_config['save_every']
         tensorboard = TensorBoard(log_dir=args.save_dir + '/logs/', batch_size=batch_size, write_images=True)
-        mdl_chkpt = ModelCheckpoint(mdl_chkpt_path, monitor='val_acc',verbose=1,  period=save_every)
+        mdl_chkpt = ModelCheckpoint(mdl_chkpt_path, monitor='val_acc',verbose=1,  period=save_every, save_best_only=True)
+
+        from contextlib import redirect_stdout
+
+        with open(os.path.join(args.save_dir,'summary.txt'), 'w') as f:
+                with redirect_stdout(f):
+                        model.summary()
 
 
         model.fit(x_train,y_train,
@@ -164,18 +170,3 @@ if __name__ == '__main__':
         with open(config_path,'w') as fc, open(loss_path,'w') as fl:
                 json.dump(exp_config,fc, indent= 2)
                 json.dump(history.history, fl, indent= 2)
-
-        
-        """
-        num_predictions = 10
-        y_pred = model.predict(x_eval[:num_predictions,...], batch_size=1)
-        y_act = y_eval[:num_predictions,...]
-
-        np.save('y_pred_test.npy', y_pred)
-        np.save('y_actual_test.npy', y_act)
-
-        model.save('FGANET.h5')
-
-
-
-        plot_model(model)"""
