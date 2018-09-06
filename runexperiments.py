@@ -144,7 +144,10 @@ if __name__ == '__main__':
         config_path = os.path.join(args.save_dir,'config.json')
         loss_path = os.path.join(args.save_dir,'loss.json')
         
-        save_every = train_config['save_every']
+        if 'save_every' in train_config.keys():
+                save_every = train_config['save_every']
+        else:
+                save_every = 100
         tensorboard = TensorBoard(log_dir=args.save_dir + '/logs/', batch_size=batch_size, write_images=True)
         mdl_chkpt = ModelCheckpoint(mdl_chkpt_path, monitor='val_acc',verbose=1,  period=save_every)
 
