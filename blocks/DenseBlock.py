@@ -201,7 +201,7 @@ def _bn_dense_block_base(inputs,
 
         out = building_blocks.bn_conv_layer(ins,
                             activation=activation,
-                            num_filters=growth_rate, 
+                            filters=growth_rate, 
                             kernel_size=kernel_size, 
                             dropout=dropout,
                             bottleneck = bottleneck,

@@ -92,7 +92,7 @@ if __name__ == '__main__':
         y_eval = np.load(eval_config['labels']).astype(np.float32)
         
         # Downsample temporal resolution
-        assert x_train.shape[1] % ds_fact == 0, 'The downsample factor, %d, must divide the initial sample size %d'%(ds_fact,x_all.shape[1])
+        assert x_train.shape[1] % ds_fact == 0, 'The downsample factor, %d, must divide the initial sample size %d'%(ds_fact,x_train.shape[1])
         x_train = x_train[:,::ds_fact,...]
         x_eval = x_eval[:,::ds_fact,...]
 
@@ -175,6 +175,7 @@ if __name__ == '__main__':
                 epochs=epochs,
                 shuffle=shuffle,
                 batch_size=batch_size,
+                validation_data=(x_eval,y_eval),
                 callbacks = [history, tensorboard, mdl_chkpt])
         
         model.evaluate(x_eval, y_eval)

@@ -179,7 +179,8 @@ def bn_residual_layer(inputs,
             kernel_size = 3,
             dropout = 0.5,
             bottleneck = True,
-            name = 'conv'):
+            bottleneck_factor = 4,
+            name = 'residual'):
     """
     A residual layer with batch normalizations before
     each activation. 
@@ -209,7 +210,8 @@ def bn_residual_layer(inputs,
             kernel_size = kernel_size,
             dropout = dropout,
             bottleneck = bottleneck,
-            name = 'conv')
+            bottleneck_factor=bottleneck_factor,
+            name = name + 'conv')
     
     out = Add()([out,inputs])
 
