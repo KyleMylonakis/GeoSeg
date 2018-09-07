@@ -37,6 +37,11 @@ BLOCKS = {
         'conv': ConvBlock
 }
 
+LABEL_FN = {
+        'interface_max':interface_groundtruth_max,
+        'interface_1d':interface_groundtruth_1d
+        }
+
 choices_msg = "Expected {} to be from {} but got {}"
 if __name__ == '__main__':
 
@@ -48,6 +53,11 @@ if __name__ == '__main__':
                         help = 'The directory to save the model and experiments config file',
                         type = str,
                         default = 'test')
+        parser.add_argument('--label-fn',
+                        help = 'A function to preprocess the labels',
+                        type = str,
+                        default = interface_groundtruth_max,
+                        choices = list(LABEL_FN.keys())+[None])
 
         args = parser.parse_args()
 
@@ -90,9 +100,12 @@ if __name__ == '__main__':
 
         # Process labels
         # TODO: Make the label processor a choosable from the config. 
-        y_train = interface_groundtruth_max(y_train, output_shape=x_train.shape[1])
-        y_eval = interface_groundtruth_max(y_eval, output_shape=x_train.shape[1])
-        
+        # Process data if a function is given.
+        if args.label_fn:
+                label_fn = args.label_fn
+                y_train = label_fn(y_train, output_shape=x_train.shape[1])
+                y_eval = label_fn(y_eval, output_shape=x_train.shape[1])
+
         # Initiate block and model instance
         #
         
