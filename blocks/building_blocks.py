@@ -49,7 +49,7 @@ def conv_layer(inputs,
     out = inputs 
     # Check bottleneck
     if bottleneck:
-        out = Conv2D(filters=filters*4,
+        out = Conv2D(filters=filters*bottleneck_factor,
                     kernel_size=(1,3),
                     strides = (1,1),
                     activation = activation,

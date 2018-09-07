@@ -24,7 +24,7 @@ class ConvBlock(Blocks):
                 bottleneck_factor = 4,
                 name = 'ConvBlock'):
         """
-        A Block object which represents a basic convolutional block with:
+        A Block object which represents a basic 1 layer convolutional block with:
             base_block: building_blocks.conv_layer  (or bn_conv_layer)
             up_sample: building_blocks.transition_layer("up")
             down_sample: building_blocks.transition_layer("down)
