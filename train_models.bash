@@ -1,11 +1,11 @@
 # Training script for the various neural networks
-PREFIX=trained_models/batch_norm_off/
+SAVE_PREFIX=experiments/trained_models/
+LOAD_PREFIX=experiments/config/
+EXPERIMENTS=(bn_on/two_layer/ bn_on/three_layer/ bn_off/two_layer/ bn_off/three_layer/)
+NETWORKS=(UNet_conv UNet_dense UNet_res AE_conv AE_dense AE_res)
 
-
-python3 runexperiments.py --config samples/UNet_conv_config.json --save-dir $PREFIX"UNet_conv"
-python3 runexperiments.py --config samples/UNet_dense_config.json --save-dir $PREFIX"UNet_dense"
-python3 runexperiments.py --config samples/UNet_res_config.json --save-dir $PREFIX"UNet_res"
-
-python3 runexperiments.py --config samples/AE_conv_config.json --save-dir $PREFIX"AE_conv"
-python3 runexperiments.py --config samples/AE_dense_config.json --save-dir $PREFIX"AE_dense"
-python3 runexperiments.py --config samples/AE_res_config.json --save-dir $PREFIX"AE_res"
+for EXP in ${EXPERIMENTS[*]}; do
+    for NET in ${NETWORKS[*]}; do
+        python3 runexperiments.py --config $LOAD_PREFIX$EXP$NET"_config.json" --save-dir $SAVE_PREFIX$EXP$NET
+    done
+done
