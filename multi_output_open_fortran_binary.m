@@ -1,13 +1,13 @@
 %ordered_fortran_data = dir('./fga_data_set/L7/Stations*');
 %ordered_fortran_data = dir('./fga_data_set/original_data/Stations*');
-fortran_data = dir('./fga_data_set/Pwave_data_set/FGA/Stations*');
+ordered_fortran_data = dir('./fga_data_set/Pwave_data_set/FGA/Stations*');
 fortran_data = ordered_fortran_data(randperm(length(ordered_fortran_data)));
 
 % 20833 files corresponds to ~3 gigs of memory for the mat file
-%max_bucket_size = 20833;
+max_bucket_size = 20833;
 %max_bucket_size = 89;
 %max_bucket_size = 300;
-max_bucket_size = 1000;
+%max_bucket_size = 1000;
 num_files = length(fortran_data);
 num_labels = 3;
 
@@ -52,8 +52,8 @@ for current_bucket = 1:num_buckets
         %count = count + 1;
     end
 
-    save(strcat('data_bucket_', num2str(current_bucket)),'data_bucket');
-    save(strcat('label_bucket_', num2str(current_bucket)),'label_bucket');
+    save(strcat('data_bucket_', num2str(current_bucket)),'data_bucket', '-v7.3');
+    save(strcat('label_bucket_', num2str(current_bucket)),'label_bucket', '-v7.3');
 end
     
 exit;
