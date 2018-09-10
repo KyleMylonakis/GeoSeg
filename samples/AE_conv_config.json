@@ -1,7 +1,7 @@
 {
   "model": {
     "meta_arch": {
-      "name": "UNet",
+      "name": "AE",
       "compression": 2,
       "num_classes": 2,
       "num_layers": 2,
@@ -21,14 +21,13 @@
       }
     },
     "block": {
-      "name": "dense",
+      "name": "conv",
       "base": {
         "kernel_size": 3,
         "dropout": 0.5,
         "bottleneck": true,
         "bottleneck_factor": 4,
-        "activation": "relu",
-        "num_layers": 4
+        "activation": "relu"
       },
       "transition": {
         "kernel_size": 2,
@@ -52,7 +51,7 @@
     "batch_size": 512,
     "epochs": 1000,
     "shuffle": true,
-    "save_every": 100
+    "save_every" : 100
   },
   "eval": {
     "data": "fga_data_set/eval/data_bucket_2.npy",

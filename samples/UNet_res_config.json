@@ -1,7 +1,17 @@
 {
   "model": {
+    "num_classes": 2,
     "meta_arch": {
       "name": "UNet",
+      "first_layer": {
+        "kernel_size": [
+          3,
+          1
+        ],
+        "activation": "relu",
+        "padding": "same",
+        "filters": 4
+      },
       "compression": 2,
       "num_classes": 2,
       "num_layers": 2,
@@ -21,14 +31,13 @@
       }
     },
     "block": {
-      "name": "dense",
+      "name": "res",
       "base": {
         "kernel_size": 3,
         "dropout": 0.5,
         "bottleneck": true,
         "bottleneck_factor": 4,
-        "activation": "relu",
-        "num_layers": 4
+        "activation": "relu"
       },
       "transition": {
         "kernel_size": 2,

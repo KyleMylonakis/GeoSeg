@@ -1,4 +1,5 @@
-fortran_data = dir('./fga_data_set/L7/Stations*');
+%fortran_data = dir('./fga_data_set/L7/Stations*');
+fortran_data = dir('./fga_data_set/Pwave_data_set/FGA/Stations*');
 num_files = length(fortran_data);
 data_bucket = zeros(num_files,6000,3,3);
 label_bucket = zeros(num_files,3);
@@ -20,7 +21,7 @@ for ii = 1:length(fortran_data)
     label_bucket(ii,1:3) = y_value;
     
 
-    fid = fopen(strcat('./fga_data_set/L7/' , fortran_data(ii).name),'rb');
+    fid = fopen(strcat('./fga_data_set/Pwave_data_set/FGA/' , fortran_data(ii).name),'rb');
     tmp = fread(fid,inf,'double');
     normalize_tmp = tmp./max(max(max(abs(tmp))));
     data_bucket(ii,1:end) = normalize_tmp;

@@ -3,7 +3,7 @@ import numpy as np
 import keras
 from keras.optimizers import SGD, Adam, Nadam, Adadelta
 from keras.utils import plot_model
-from keras.callbacks import History
+from keras.callbacks import History, TensorBoard, ModelCheckpoint
 
 from data_utils import interface_groundtruth_1d
 from data_utils import interface_groundtruth_max
@@ -37,6 +37,11 @@ BLOCKS = {
         'conv': ConvBlock
 }
 
+LABEL_FN = {
+        'interface_max':interface_groundtruth_max,
+        'interface_1d':interface_groundtruth_1d
+        }
+
 choices_msg = "Expected {} to be from {} but got {}"
 if __name__ == '__main__':
 
@@ -48,6 +53,11 @@ if __name__ == '__main__':
                         help = 'The directory to save the model and experiments config file',
                         type = str,
                         default = 'test')
+        parser.add_argument('--label-fn',
+                        help = 'A function to preprocess the labels',
+                        type = str,
+                        default = interface_groundtruth_max,
+                        choices = list(LABEL_FN.keys())+[None])
 
         args = parser.parse_args()
 
@@ -82,7 +92,7 @@ if __name__ == '__main__':
         y_eval = np.load(eval_config['labels']).astype(np.float32)
         
         # Downsample temporal resolution
-        assert x_train.shape[1] % ds_fact == 0, 'The downsample factor, %d, must divide the initial sample size %d'%(ds_fact,x_all.shape[1])
+        assert x_train.shape[1] % ds_fact == 0, 'The downsample factor, %d, must divide the initial sample size %d'%(ds_fact,x_train.shape[1])
         x_train = x_train[:,::ds_fact,...]
         x_eval = x_eval[:,::ds_fact,...]
 
@@ -90,9 +100,12 @@ if __name__ == '__main__':
 
         # Process labels
         # TODO: Make the label processor a choosable from the config. 
-        y_train = interface_groundtruth_max(y_train, output_shape=x_train.shape[1])
-        y_eval = interface_groundtruth_max(y_eval, output_shape=x_train.shape[1])
-        
+        # Process data if a function is given.
+        if args.label_fn:
+                label_fn = args.label_fn
+                y_train = label_fn(y_train, output_shape=x_train.shape[1])
+                y_eval = label_fn(y_eval, output_shape=x_train.shape[1])
+
         # Initiate block and model instance
         #
         
@@ -120,45 +133,57 @@ if __name__ == '__main__':
         optimizer_config = train_config['optimizer']['parameters']
         optimizer = OPTIMIZERS[optimizer_type](**optimizer_config)
         
+        mdl_chkpt_path = os.path.join(args.save_dir,'model_chkpt.hdf5')
+        if os.path.exists(mdl_chkpt_path):
+                print("Loading model from existing checkpont ", mdl_chkpt_path)
+                model.load_weights(mdl_chkpt_path)
+
+
         model.compile(optimizer=optimizer,
                 loss='categorical_crossentropy',
                 metrics=['accuracy'])
         
-        # Record training loss
+        # Record training loss and initialize callbacks for logging and saving
         history = History()
+
+        if not os.path.isdir(args.save_dir):
+                os.makedirs(args.save_dir)
+
+        # Make logs directory for tensorboard if needed
+        if not os.path.isdir(args.save_dir +'/logs/'):
+                os.makedirs(args.save_dir + '/logs/')
+        
+        model_path = os.path.join(args.save_dir,'model.h5')
+        config_path = os.path.join(args.save_dir,'config.json')
+        loss_path = os.path.join(args.save_dir,'loss.json')
+        
+        if 'save_every' in train_config.keys():
+                save_every = train_config['save_every']
+        else:
+                save_every = 100
+        tensorboard = TensorBoard(log_dir=args.save_dir + '/logs/', batch_size=batch_size, write_images=True)
+        mdl_chkpt = ModelCheckpoint(mdl_chkpt_path, monitor='val_acc',verbose=1,  period=save_every, save_best_only=True)
+
+        from contextlib import redirect_stdout
+
+        with open(os.path.join(args.save_dir,'summary.txt'), 'w') as f:
+                with redirect_stdout(f):
+                        model.summary()
+
+
         model.fit(x_train,y_train,
                 epochs=epochs,
                 shuffle=shuffle,
                 batch_size=batch_size,
-                callbacks = [history])
+                validation_data=(x_eval,y_eval),
+                callbacks = [history, tensorboard, mdl_chkpt])
         
         model.evaluate(x_eval, y_eval)
         
-        if not os.path.isdir(args.save_dir):
-                os.makedirs(args.save_dir)
-        
         # Specify experiment outputs
-        model_path = os.path.join(args.save_dir,'model.h5')
-        config_path = os.path.join(args.save_dir,'config.json')
-        loss_path = os.path.join(args.save_dir,'loss.json')
         
         model.save(model_path)
 
         with open(config_path,'w') as fc, open(loss_path,'w') as fl:
                 json.dump(exp_config,fc, indent= 2)
                 json.dump(history.history, fl, indent= 2)
-
-        
-        """
-        num_predictions = 10
-        y_pred = model.predict(x_eval[:num_predictions,...], batch_size=1)
-        y_act = y_eval[:num_predictions,...]
-
-        np.save('y_pred_test.npy', y_pred)
-        np.save('y_actual_test.npy', y_act)
-
-        model.save('FGANET.h5')
-
-
-
-        plot_model(model)"""

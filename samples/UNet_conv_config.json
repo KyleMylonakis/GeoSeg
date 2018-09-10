@@ -21,14 +21,13 @@
       }
     },
     "block": {
-      "name": "dense",
+      "name": "conv",
       "base": {
         "kernel_size": 3,
         "dropout": 0.5,
         "bottleneck": true,
         "bottleneck_factor": 4,
-        "activation": "relu",
-        "num_layers": 4
+        "activation": "relu"
       },
       "transition": {
         "kernel_size": 2,
