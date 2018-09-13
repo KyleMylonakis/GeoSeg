@@ -111,7 +111,6 @@ if __name__ == '__main__':
         
         # Block instance
         block = BLOCKS[block_type](block_config)
-        #block = DenseBlock()
 
         # Create meta_arch instance        
         model = MODEL_TYPES[model_type](block = block, meta_config = meta_arch_config)
