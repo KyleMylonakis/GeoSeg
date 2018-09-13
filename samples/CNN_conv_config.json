@@ -1,7 +1,7 @@
 {
   "model": {
     "meta_arch": {
-      "name": "UNet",
+      "name": "CNN",
       "num_receivers": 6,
       "compression": 2,
       "num_classes": 2,
@@ -13,7 +13,7 @@
       }
     },
     "block": {
-      "name": "dense",
+      "name": "conv",
       "base": {
         "kernel_size": [
           3,
@@ -22,8 +22,7 @@
         "dropout": 0.5,
         "bottleneck": true,
         "bottleneck_factor": 4,
-        "activation": "relu",
-        "num_layers": 4
+        "activation": "relu"
       },
       "transition": {
         "kernel_size": [

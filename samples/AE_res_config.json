@@ -2,44 +2,41 @@
   "model": {
     "meta_arch": {
       "name": "AE",
+      "num_receivers": 6,
       "first_layer": {
         "kernel_size": [
           3,
           1
         ],
         "activation": "relu",
-        "padding": "same",
-        "filters": 4
+        "padding": "same"
       },
       "compression": 2,
       "num_classes": 2,
       "num_layers": 2,
       "final_layer": {
-        "filters": 2,
-        "kernel_size": [
-          1,
-          1
-        ],
-        "strides": [
-          1,
-          3
-        ],
-        "padding": "same",
-        "activation": "softmax",
-        "name": "softmax"
+        "name": "binary-1d",
+        "filters": 4,
+        "activation": "softmax"
       }
     },
     "block": {
       "name": "res",
       "base": {
-        "kernel_size": 3,
+        "kernel_size": [
+          3,
+          1
+        ],
         "dropout": 0.5,
         "bottleneck": true,
         "bottleneck_factor": 4,
         "activation": "relu"
       },
       "transition": {
-        "kernel_size": 2,
+        "kernel_size": [
+          2,
+          1
+        ],
         "compression": 2,
         "activation": "relu"
       },
@@ -50,22 +47,22 @@
   "train": {
     "data": "fga_data_set/train/data_bucket_1.npy",
     "labels": "fga_data_set/train/label_bucket_1.npy",
-    "downsample": 25,
+    "downsample": 125,
     "optimizer": {
       "algorithm": "nadam",
       "parameters": {
         "lr": 0.002
       }
     },
-    "batch_size": 512,
-    "epochs": 1000,
+    "batch_size": 8,
+    "epochs": 1,
     "shuffle": true,
-    "save_every": 100
+    "save_every": 1
   },
   "eval": {
     "data": "fga_data_set/eval/data_bucket_2.npy",
     "labels": "fga_data_set/eval/label_bucket_2.npy",
-    "batch_size": 32,
+    "batch_size": 8,
     "shuffle": false
   }
 }
