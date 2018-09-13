@@ -22,7 +22,7 @@ class UNet(CNN):
                 final_strides = (1,3),
                 final_padding = 'same',
                 final_activation = 'softmax',
-                final_name = 'softmax'):
+                final_name = 'binary-1d'):
         
         super().__init__(meta_config = meta_config,
                         num_layers=num_layers,
