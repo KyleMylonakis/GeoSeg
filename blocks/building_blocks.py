@@ -14,7 +14,6 @@ from keras.layers import Activation
 def conv_layer(inputs,
             activation = 'relu',
             filters = 4,
-            #kernel_size = 3,
             kernel_size = (3,3),
             dropout = 0.5,
             bottleneck = True,
@@ -59,7 +58,6 @@ def conv_layer(inputs,
         out = Dropout(dropout)(out)
         
     out = Conv2D(filters=filters,
-                    #kernel_size=(kernel_size,3),
                     kernel_size=kernel_size,
                     strides = (1,1),
                     activation = activation,
@@ -72,7 +70,6 @@ def conv_layer(inputs,
 def bn_conv_layer(inputs,
             activation = 'relu',
             filters = 4,
-            #kernel_size = 3,
             kernel_size = (3,3),
             dropout = 0.5,
             bottleneck = True,
@@ -112,7 +109,6 @@ def bn_conv_layer(inputs,
 
     if bottleneck:
         out = Conv2D(filters=filters*bottleneck_factor,
-                    #kernel_size=(1,3),
                     kernel_size=(1,1),
                     strides = (1,1),
                     activation = None,
@@ -136,7 +132,6 @@ def bn_conv_layer(inputs,
 def residual_layer(inputs,
             activation = 'relu',
             filters = 4,
-            #kernel_size = 3,
             kernel_size = (3,3),
             dropout = 0.5,
             bottleneck = True,
@@ -181,7 +176,6 @@ def residual_layer(inputs,
 def bn_residual_layer(inputs,
             activation = 'relu',
             filters = 4,
-            #kernel_size = 3,
             kernel_size= (3,1),
             dropout = 0.5,
             bottleneck = True,
@@ -227,7 +221,6 @@ def bn_residual_layer(inputs,
 def transition_layer(inputs,filters,
                     compression = 2,
                     up_or_down = 'down',
-                    #kernel_size = 2,
                     kernel_size= (2,1),
                     activation = 'relu',
                     padding = 'same',
@@ -281,7 +274,6 @@ def transition_layer(inputs,filters,
 
     if up_or_down == 'down':
         out = Conv2D(filters=filters,
-                #kernel_size=(kernel_size,3),
                 kernel_size=kernel_size,
                 strides = (compression,1),
                 activation = activation,
@@ -289,7 +281,6 @@ def transition_layer(inputs,filters,
                 name = name+'/conv_dwn')(out)
     elif up_or_down == 'up':
         out = out = Conv2DTranspose(filters=filters,
-                #kernel_size=(kernel_size,3),
                 kernel_size=kernel_size,
                 strides = (compression,1),
                 activation =activation,
@@ -300,7 +291,6 @@ def transition_layer(inputs,filters,
 def transition_layer_2D(inputs,filters,
                     compression = 2,
                     up_or_down = 'down',
-                    #kernel_size = 2,
                     kernel_size= (2,2),
                     activation = 'relu',
                     padding = 'same',
@@ -344,7 +334,6 @@ def transition_layer_2D(inputs,filters,
         raise ValueError(msg.format(up_or_down))
     
     #filters = int(filters*filter_factor)
-    #print('transition filters:', filters)
     out = Conv2D(filters=filters,
                 kernel_size=(1,3),
                 strides = (1,1),
@@ -354,7 +343,6 @@ def transition_layer_2D(inputs,filters,
 
     if up_or_down == 'down':
         out = Conv2D(filters=filters,
-                #kernel_size=(kernel_size,3),
                 kernel_size=kernel_size,
                 strides = (compression,compression),
                 activation = activation,
@@ -362,10 +350,56 @@ def transition_layer_2D(inputs,filters,
                 name = name+'/conv_dwn')(out)
     elif up_or_down == 'up':
         out = out = Conv2DTranspose(filters=filters,
-                #kernel_size=(kernel_size,3),
                 kernel_size=kernel_size,
                 strides = (compression,compression),
                 activation =activation,
                 padding=padding,
                 name = name+'/conv_dwn')(out)
     return out 
+
+def binary_output_layer_1d(inputs,
+                    num_receivers = 3, 
+                    activation = 'softmax',
+                    filters = 4,
+                    dropout = 0.5,
+                    name = 'softmax'):
+    """
+    *tensors = (t-direction, x-direction, filters)*
+    A final layer for 1d low velocity detection. Performs
+    a downsampling in the x-direction with a (num_receivers,1)
+    kernel strided at (1,num_receivers) then outputs class 
+    probabilities at each pixels.
+    
+    (N,num_receivers,f) -> (N,1,filters) -> (N,1,2)
+
+    First mapping is hardcoded relu. Act
+    Parameters:
+    -----------
+        inputs: Tensor of size (N,num_receivers,f)
+        activation: Activation to use in second layer. 
+        num_receivers: size of x-direction.
+        filters: Number of filters to put before softmaxing.
+        dropout: Dropout probability for first layer.
+        name: Name to use for block.
+    Returns:
+    --------
+        A (N,1,2) tensor where out[n,:,j] is the probability that pixes n is
+        of class j. Needs to be reshaped before use with loss. 
+    """
+    # (N,r,s) -> (N,1,filters)
+    # defaults to relu in the middle
+    out = Conv2D(filters = filters,
+                kernel_size = (num_receivers,1),
+                padding = "same",
+                activation= 'relu',
+                strides = (1,num_receivers))(inputs)
+
+    out = Dropout(dropout)(out)
+
+    # (N,1,filters) -> (N,1,num_classes)
+    out = Conv2D(filters = 2,
+                kernel_size = (1,1),
+                activation = activation,
+                padding = "same")(out)
+    
+    return out
