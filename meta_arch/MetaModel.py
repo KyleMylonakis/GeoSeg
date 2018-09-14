@@ -11,7 +11,7 @@ class MetaModel(ABC):
         self.meta_config = config['model']['meta_arch']
         
         if self.config['model']['block']['name'] == 'res':
-            print('RESIDUAL BLOCK DETECTED')
+            #print('RESIDUAL BLOCK DETECTED')
             msg = "Residual blocks must have a first layer"
             assert self.first_layer, msg
     

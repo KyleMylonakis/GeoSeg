@@ -26,7 +26,7 @@ class AutoEncoder(CNN):
                 final_strides = (1,3),
                 final_padding = 'same',
                 final_activation = 'softmax',
-                final_name = 'softmax'):
+                final_name = 'binary-1d'):
         
         super().__init__(meta_config = meta_config,
                         num_layers=num_layers,
@@ -43,10 +43,7 @@ class AutoEncoder(CNN):
                         final_padding = final_padding,
                         final_activation = final_activation,
                         final_name = final_name)
-        #self.dump_config('peek')
     # Override CNN's main_model_fn method.
-        #self.dump_config('peek')
-
     def main_model_fn(self):
         return lambda x: self.__auto_encoder_fn(x)
 
@@ -55,22 +52,17 @@ class AutoEncoder(CNN):
         compression = self.compression
         num_layers = self.num_layers
         block = self.block
-        utils._dump_config(block,'block_test')
-        #print('here')
+        #utils._dump_config(block,'block_test')
         out = inputs
-        #num_filters = self.init_filters
-        num_filters = block.config['filters']
-        
+        num_filters = block.config['filters']        
         
         for i in range(num_layers):            
             out = block.base_block(tag ='down_'+ str(i),
-                            filters = num_filters)(out)
-            
+                            filters = num_filters)(out)            
             
             num_filters = num_filters*compression
             out = block.down_sample(tag = str(i), 
-                            filters = num_filters)(out)
-            
+                            filters = num_filters)(out)            
 
         for i in range(num_layers):
             out = block.base_block(tag = 'up_'+str(i),
