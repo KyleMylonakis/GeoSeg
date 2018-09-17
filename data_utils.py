@@ -28,8 +28,9 @@ def interface_groundtruth_max(y,
                             std_ratio=0.1):
 
     interface_depth = y[:,2]
+    print('==================INTERFACE DEPTH==========: ', interface_depth)
     #total_depth = feature["total_depth"]
-    total_depth = 20.0
+    total_depth = 200.0
     std = std_ratio*total_depth
     var = std**2
     #print('var: ', var)

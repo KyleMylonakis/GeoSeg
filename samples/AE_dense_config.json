@@ -33,7 +33,7 @@
         "compression": 2,
         "activation": "relu"
       },
-      "batch_norm": false,
+      "batch_norm": true,
       "filters": 4
     }
   },
@@ -47,8 +47,8 @@
         "lr": 0.002
       }
     },
-    "batch_size": 8,
-    "epochs": 1,
+    "batch_size": 32,
+    "epochs": 3500,
     "shuffle": true,
     "save_every": 1
   },

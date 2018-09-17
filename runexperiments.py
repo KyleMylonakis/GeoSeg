@@ -169,7 +169,7 @@ if __name__ == '__main__':
                 with redirect_stdout(f):
                         model.summary()
 
-
+        #epochs=2
         model.fit(x_train,y_train,
                 epochs=epochs,
                 shuffle=shuffle,
