@@ -61,7 +61,10 @@ if __name__ == '__main__':
 
     # Make the predictions
     print('Making the predictions')
-    y_pred = model.predict(x_eval)
+    eval_metrics = model.evaluate(x=x_eval, y=y_eval)
+    print('Evalutaion Loss: ', eval_metrics[0])
+    print('Evalutaion Accuracy: ', eval_metrics[1])
+    y_pred = model.predict(x_eval, verbose=1)
 
     # Save output for analysis
     print('Saving actual and predicted output')
