@@ -29,8 +29,10 @@ def interface_groundtruth_max(y,
 
     interface_depth = y[:,2]
     print('==================INTERFACE DEPTH==========: ', interface_depth)
+    # Total depth = 200 for P-wave, 9999.0 for PS wave
     #total_depth = feature["total_depth"]
-    total_depth = 9999.0
+    #total_depth = 9999.0
+    total_depth = 200.0
     std = std_ratio*total_depth
     var = std**2
     #print('var: ', var)
