@@ -83,6 +83,7 @@ The only field required is "name". Any other parameters that define the model wi
   }
 ~~~
 
+
 ## References
 1. [Deep Learning Seismic Interface Detection using the Frozen Gaussian Approximation][1];
 James C. Hateley, Jay Roberts, Kyle Mylonakis, Xu Yang. (2018)
