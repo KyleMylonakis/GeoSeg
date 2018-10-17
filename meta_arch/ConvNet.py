@@ -101,7 +101,8 @@ class CNN(MetaModel):
         """
         default_meta_config = {
                 'name': name,
-                'compression': compression,
+                'compression': compression, #TODO: meta_arch.config and block.config 
+                                            # both have compression. Put it in just one.
                 'num_classes': num_classes,
                 'num_layers': num_layers,
                 'num_receivers': num_receivers
