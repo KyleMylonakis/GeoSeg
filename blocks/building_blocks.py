@@ -356,7 +356,7 @@ def binary_output_layer_1d(inputs,
                     dropout = 0.5,
                     name = 'softmax'):
     """
-    tensors = (t-direction, x-direction, filters)*
+    tensors = (t-direction, x-direction, filters)
     A final layer for 1d low velocity detection. Performs
     a downsampling in the x-direction with a (num_receivers,1)
     kernel strided at (1,num_receivers) then outputs class 
