@@ -1,9 +1,9 @@
 #   A SegNet [1] style network. The Encoder-Decoder language is borrowed from [2]. 
 #   Each network is composed of an Encoding branch and a Decoding branch. We refer
 #   to an L-layer Encoder-Decoder network as one which has an L-block Encoding branch
-#   and an N-block Decoding branch. The network has a compression factor, c, which controls
-#   the resolution size change. On the Encoding/Decoding branch each block down/upsamples
-#   by a factor of c. 
+#   and an L-block Decoding branch. The network's block has a compression factor, c, which 
+#   controls the resolution size change. On the Encoding/Decoding branch each block 
+#   down/upsamples by a factor of c. 
 #   
 #   Overall structure is 
 #   input -> first_layer -> Encode -> Decode -> final_layer.
