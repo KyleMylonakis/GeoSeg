@@ -3,14 +3,6 @@
     "meta_arch": {
       "name": "CNN",
       "num_receivers": 6,
-      "first_layer": {
-        "kernel_size": [
-          3,
-          1
-        ],
-        "activation": "relu",
-        "padding": "same"
-      },
       "compression": 2,
       "num_classes": 2,
       "num_layers": 2,
@@ -45,9 +37,9 @@
     }
   },
   "train": {
-    "data": "fga_data_set/train/data_bucket_1.npy",
-    "labels": "fga_data_set/train/label_bucket_1.npy",
-    "downsample": 125,
+    "data": "PATH/TO/DATA.npy",
+    "labels": "PATH/TO/LABELS.npy",
+    "downsample": 25,
     "optimizer": {
       "algorithm": "nadam",
       "parameters": {
@@ -60,8 +52,8 @@
     "save_every": 1
   },
   "eval": {
-    "data": "fga_data_set/eval/data_bucket_2.npy",
-    "labels": "fga_data_set/eval/label_bucket_2.npy",
+    "data": "PATH/TO/DATA.npy",
+    "labels": "PATH/TO/LABELS.npy",
     "batch_size": 8,
     "shuffle": false
   }
