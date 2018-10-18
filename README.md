@@ -30,7 +30,7 @@ clone https://github.com/KyleMylonakis/GeoSeg
 
 2. Train the network
 ~~~
-python3 runexperiments.py --config path/to/config.json \ 
+python3 main.py --config path/to/config.json \ 
                           --save-dir path/to/save/model
 ~~~
 
