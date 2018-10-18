@@ -19,9 +19,9 @@
 
 import json
 from meta_arch.MetaModel import MetaModel
-from meta_arch.ConvNet import CNN
+from meta_arch.ConvNet import ConvNet
 from keras.layers import Conv2D
-class EncoderDecoder(CNN):
+class EncoderDecoder(ConvNet):
     def __init__(self,
                 meta_config=None,
                 num_layers = 2, 
@@ -61,7 +61,7 @@ class EncoderDecoder(CNN):
                         final_padding = final_padding,
                         final_activation = final_activation,
                         final_name = final_name)
-    # Override CNN's main_model_fn method.
+    # Override ConvNet's main_model_fn method.
     def main_model_fn(self):
         """
         Wraps __encoder_decorder_fn() with

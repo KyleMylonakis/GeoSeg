@@ -21,9 +21,9 @@ from keras.layers import Concatenate, Conv2D
 
 import json
 from meta_arch.MetaModel import MetaModel
-from meta_arch.ConvNet import CNN
+from meta_arch.ConvNet import ConvNet
 
-class UNet(CNN):
+class UNet(ConvNet):
     def __init__(self,
                 meta_config=None,
                 num_layers = 2, 
@@ -63,7 +63,7 @@ class UNet(CNN):
                         final_padding = final_padding,
                         final_activation = final_activation,
                         final_name = final_name)
-    # Override CNN's main_model_fn method
+    # Override ConvNet's main_model_fn method
     def main_model_fn(self):
         """
         Wraps __encoder_decorder_fn() with

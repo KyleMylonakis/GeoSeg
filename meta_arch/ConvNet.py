@@ -15,7 +15,7 @@ FINAL_LAYERS = {
             }
 
 
-class CNN(MetaModel):
+class ConvNet(MetaModel):
     def __init__(self,
                 meta_config=None,
                 num_receivers=3,
@@ -196,15 +196,15 @@ class CNN(MetaModel):
     
     def main_model_fn(self):
         """
-        Wraps __CNN_fn in a lambda.
+        Wraps __ConvNet_fn in a lambda.
         Returns:
         --------
-            A keras function representing __CNN_fn as the model
+            A keras function representing __ConvNet_fn as the model
             function.
         """
-        return lambda x: self.__CNN_fn(x)
+        return lambda x: self.__ConvNet_fn(x)
     
-    def __CNN_fn(self, inputs):
+    def __ConvNet_fn(self, inputs):
         """
         A convolutional neural network defined by the self.config.
         It is an L block network where each block is topped with a
