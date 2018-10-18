@@ -12,7 +12,7 @@ import argparse
 from blocks.DenseBlock import DenseBlock
 from blocks.ConvBlock import ConvBlock, ResBlock
 from meta_arch.UNet import UNet
-from meta_arch.AutoEncoder import AutoEncoder
+from meta_arch.EncoderDecoder import EncoderDecoder
 from meta_arch.ConvNet import CNN
 
 import json
@@ -20,7 +20,7 @@ import os
 
 MODEL_TYPES = {
         'UNet': UNet,
-        'AE': AutoEncoder,
+        'AE': EncoderDecoder,
         'CNN': CNN
         }
 
@@ -149,8 +149,9 @@ if __name__ == '__main__':
                 os.makedirs(args.save_dir)
 
         # Make logs directory for tensorboard if needed
-        if not os.path.isdir(args.save_dir +'/logs/'):
-                os.makedirs(args.save_dir + '/logs/')
+        logs_dir = os.path.join(args.save_dir,'logs')
+        if not os.path.isdir(logs_dir):
+                os.makedirs(logs_dir)
         
         model_path = os.path.join(args.save_dir,'model.h5')
         config_path = os.path.join(args.save_dir,'config.json')
@@ -160,7 +161,9 @@ if __name__ == '__main__':
                 save_every = train_config['save_every']
         else:
                 save_every = 100
-        tensorboard = TensorBoard(log_dir=args.save_dir + '/logs/', batch_size=batch_size, write_images=True)
+        
+        tb_dir = os.path.join(args.save_dir,'logs')
+        tensorboard = TensorBoard(log_dir=tb_dir, batch_size=batch_size, write_images=True)
         mdl_chkpt = ModelCheckpoint(mdl_chkpt_path, monitor='val_acc',verbose=1,  period=save_every, save_best_only=True)
 
         from contextlib import redirect_stdout
@@ -168,7 +171,6 @@ if __name__ == '__main__':
         with open(os.path.join(args.save_dir,'summary.txt'), 'w') as f:
                 with redirect_stdout(f):
                         model.summary()
-
 
         model.fit(x_train,y_train,
                 epochs=epochs,

@@ -98,6 +98,10 @@ class ConvBlock(Blocks):
         self.base_config = block_config['base']
         self.trans_config = block_config['transition']
 
+        #TODO: Make compression a parameter for blocks 
+        #       that is set by meta-arch.
+        self.compression = block_config['transition']['compression']
+
         # Get conv_layer or bn_conv_layer
         # for the base block.
         if self.batch_norm:
