@@ -1,7 +1,7 @@
 {
   "model": {
     "meta_arch": {
-      "name": "AE",
+      "name": "encoder-decoder",
       "num_receivers": 6,
       "first_layer": {
         "kernel_size": [

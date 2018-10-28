@@ -1,7 +1,7 @@
 {
   "model": {
     "meta_arch": {
-      "name": "UNet",
+      "name": "unet",
       "num_receivers": 6,
       "compression": 2,
       "num_classes": 2,
