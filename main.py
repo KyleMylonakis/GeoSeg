@@ -19,9 +19,9 @@ import json
 import os 
 
 MODEL_TYPES = {
-        'UNet': UNet,
-        'AE': EncoderDecoder,
-        'CNN': CNN
+        'unet': UNet,
+        'encoder-decoder': EncoderDecoder,
+        'cnn': CNN
         }
 
 OPTIMIZERS = {
@@ -35,7 +35,7 @@ BLOCKS = {
         'dense': DenseBlock,
         'res': ResBlock,
         'conv': ConvBlock
-}
+        }
 
 LABEL_FN = {
         'interface_max':interface_groundtruth_max,
@@ -129,6 +129,7 @@ if __name__ == '__main__':
         # Get the optimizer
         optimizer_type = train_config['optimizer']['algorithm']
         assert optimizer_type in OPTIMIZERS.keys(), choices_msg.format('optimizer',OPTIMIZERS.keys(),optimizer_type)
+
         optimizer_config = train_config['optimizer']['parameters']
         optimizer = OPTIMIZERS[optimizer_type](**optimizer_config)
         
