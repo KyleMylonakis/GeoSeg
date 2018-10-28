@@ -48,6 +48,11 @@ def interface_groundtruth_max(y,
                         out[jj,kk,0] = 1.0
     return out
 
+def one_hot_it(idx,num_classes):
+        result = [0]*num_classes
+        result[idx] = 1
+        return np.array(result)
+
 def ground_truth_1d_2layer_single_example(labels_tensor,output_shape=100):
         """
         Assumes labels_tensor is a numpy array of the form (c1,c2,ratio) 
@@ -58,25 +63,24 @@ def ground_truth_1d_2layer_single_example(labels_tensor,output_shape=100):
         Parameters:
         -----------
                 labels_tensor: np.array of shape (3,)
+        Ret
         """
 
         wave_speeds = labels_tensor[:-1]
-        #print(wave_speeds)
         ratio = labels_tensor[-1]
-        #assert False
         assert  0.0 < ratio < 1.0, 'Ratio must be in (0,1) but got %f'%ratio
 
         wave_speeds = list(wave_speeds)
 
         split = int(output_shape*ratio)
         
-        ground_truth = [0]*output_shape
-        ground_truth[:split] = [wave_speeds[0]]*split
-        ground_truth[split:] = [wave_speeds[1]]*(output_shape - split)
-        
-        wave_speeds.sort()      # modifies wave speeds
-        ground_truth = [wave_speeds.index(x) for x in ground_truth]
 
+        wave_speeds.sort()      # modifies wave speeds
+
+        ground_truth = [0]*output_shape
+        ground_truth[:split] = [one_hot_it(wave_speeds.index(wave_speeds[0]),2)]*split
+        ground_truth[split:] = [one_hot_it(wave_speeds.index(wave_speeds[1]),2)]*(output_shape - split)
+                
         return ground_truth
 
 def ground_truth_1d_2layer_single_example_packed(labels_tensor_output_shape):

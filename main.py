@@ -7,21 +7,24 @@ from keras.callbacks import History, TensorBoard, ModelCheckpoint
 
 from data_utils import interface_groundtruth_1d
 from data_utils import interface_groundtruth_max
-import argparse
+from data_utils import ground_truth_1d_2layer
+
 
 from blocks.DenseBlock import DenseBlock
 from blocks.ConvBlock import ConvBlock, ResBlock
+
 from meta_arch.UNet import UNet
 from meta_arch.EncoderDecoder import EncoderDecoder
-from meta_arch.ConvNet import CNN
+from meta_arch.ConvNet import ConvNet
 
 import json
 import os 
+import argparse
 
 MODEL_TYPES = {
         'unet': UNet,
         'encoder-decoder': EncoderDecoder,
-        'cnn': CNN
+        'cnn': ConvNet
         }
 
 OPTIMIZERS = {
@@ -39,7 +42,8 @@ BLOCKS = {
 
 LABEL_FN = {
         'interface_max':interface_groundtruth_max,
-        'interface_1d':interface_groundtruth_1d
+        'interface_1d':interface_groundtruth_1d,
+        '1d-2layer': ground_truth_1d_2layer
         }
 
 choices_msg = "Expected {} to be from {} but got {}"
@@ -56,7 +60,7 @@ if __name__ == '__main__':
         parser.add_argument('--label-fn',
                         help = 'A function to preprocess the labels',
                         type = str,
-                        default = interface_groundtruth_max,
+                        default = ground_truth_1d_2layer,
                         choices = list(LABEL_FN.keys())+[None])
 
         args = parser.parse_args()
@@ -98,8 +102,6 @@ if __name__ == '__main__':
 
         assert x_train.shape[0] == y_train.shape[0], 'Number of samples does not match between station data and their labels'
 
-        # Process labels
-        # TODO: Make the label processor a choosable from the config. 
         # Process data if a function is given.
         if args.label_fn:
                 label_fn = args.label_fn
@@ -115,7 +117,7 @@ if __name__ == '__main__':
         # Create meta_arch instance        
         model = MODEL_TYPES[model_type](block = block, meta_config = meta_arch_config)
         
-        if model_type == 'CNN':
+        if model_type == 'cnn':
                 red_factor = 2**(meta_arch_config['num_layers'])
 
                 y_train = y_train[:,::red_factor,...]

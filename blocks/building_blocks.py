@@ -388,10 +388,9 @@ def binary_output_layer_1d(inputs,
 
     out = Dropout(dropout)(out)
 
-    # (N,1,filters) -> (N,1,num_classes)
+    # (N,1,filters) -> (N,1,2)
     out = Conv2D(filters = 2,
                 kernel_size = (1,1),
                 activation = activation,
                 padding = "same")(out)
-    
     return out

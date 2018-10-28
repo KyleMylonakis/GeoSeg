@@ -97,7 +97,7 @@ class MetaModel(ABC):
     
     def build_model(self, input_shape, output_shape = None):
         """
-        Compiles a kears Model object with architecture:
+        Compiles a keras Model object with architecture:
             inputs -> main_model_fn -> final_layer_fn -> Reshape
         
         Assumes the network is a semantic segmentation type model so 
@@ -119,9 +119,8 @@ class MetaModel(ABC):
         """
         if output_shape is None:
             output_shape = input_shape[0]
-            output_shape1 = input_shape[0]
         
-        output_shape1 = [output_shape1] + [self.meta_config['num_classes']]
+        output_shape = [output_shape] + [self.meta_config['num_classes']]
         
         self.input_shape = input_shape
 
@@ -133,7 +132,7 @@ class MetaModel(ABC):
 
         out = self.main_model_fn()(out)
         out = self.final_layer_fn()(out)
-        out = Reshape(output_shape1)(out)
+        out = Reshape(output_shape)(out)
 
         model = Model(inputs = inputs, outputs = out)
         return model
