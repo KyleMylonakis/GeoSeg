@@ -354,23 +354,29 @@ def binary_output_layer_1d(inputs,
                     activation = 'softmax',
                     filters = 4,
                     dropout = 0.5,
-                    name = 'softmax'):
+                    name = 'softmax',
+                    num_classes = 2):
     """
+    *(Deprecated): To be replaced by multiclass_output_layer_1d. Added
+        num_classes as dummy variable to keep it working with current
+        code base but this may not work forever and we will stop supporting
+        this function soon. *
+
     tensors = (t-direction, x-direction, filters)
     A final layer for 1d low velocity detection. Performs
     a downsampling in the x-direction with a (num_receivers,1)
     kernel strided at (1,num_receivers) then outputs class 
     probabilities at each pixels.
     
-    (N,num_receivers,f) -> (N,1,filters) -> (N,1,2)
-
+    (N,num_receivers,f) -> (N,1,num_receivers) -> (N,1,2)
+                                    ^- This is to preserve total image parameters.
     First mapping is hardcoded relu. Act
     Parameters:
     -----------
         inputs: Tensor of size (N,num_receivers,f)
         activation: Activation to use in second layer. 
         num_receivers: size of x-direction.
-        filters: Number of filters to put before softmaxing.
+        filters: (Deprecated) Number of filters to put before softmaxing.
         dropout: Dropout probability for first layer.
         name: Name to use for block.
     Returns:
@@ -380,7 +386,7 @@ def binary_output_layer_1d(inputs,
     """
     # (N,r,s) -> (N,1,filters)
     # defaults to relu in the middle
-    out = Conv2D(filters = filters,
+    out = Conv2D(filters = num_receivers,
                 kernel_size = (num_receivers,1),
                 padding = "same",
                 activation= 'relu',
@@ -394,3 +400,52 @@ def binary_output_layer_1d(inputs,
                 activation = activation,
                 padding = "same")(out)
     return out
+
+def multiclass_output_layer_1d(inputs,
+                    num_classes = 2,
+                    num_receivers = 3, 
+                    activation = 'softmax',
+                    filters = 4,
+                    dropout = 0.5,
+                    name = 'softmax'):
+    """
+    tensors = (t-direction, x-direction, filters)
+    A final layer for 1d multi elocity detection. Performs
+    a downsampling in the x-direction with a (num_receivers,1)
+    kernel strided at (1,num_receivers) then outputs classes
+    probabilities at each pixel.
+    
+    (N,num_receivers,f) -> (N,1,num_receivers) -> (N,1,num_classes)
+
+    First mapping is hardcoded relu. 
+    Parameters:
+    -----------
+        inputs: Tensor of size (N,num_receivers,f)
+        activation: Activation to use in second layer. 
+        num_receivers: size of x-direction.
+        filters:(Deprecated) Number of filters to put before softmaxing.
+        dropout: Dropout probability for first layer.
+        name: Name to use for block.
+    Returns:
+    --------
+        A (N,1,num_classes) tensor where out[n,:,j] is the probability that pixes n is
+        of class j. Needs to be reshaped before use with loss. 
+    """
+    # (N,r,s) -> (N,1,r)
+    # defaults to relu in the middle
+    out = Conv2D(filters = num_receivers,
+                kernel_size = (num_receivers,1),
+                padding = "same",
+                activation= 'relu',
+                strides = (1,num_receivers))(inputs)
+
+    out = Dropout(dropout)(out)
+
+    # (N,1,r) -> (N,1,num_classes)
+    out = Conv2D(filters = num_classes,
+                kernel_size = (1,1),
+                activation = activation,
+                padding = "same")(out)
+    return out
+
+

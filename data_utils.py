@@ -71,15 +71,14 @@ def ground_truth_1d_2layer_single_example(labels_tensor,output_shape=100):
         assert  0.0 < ratio < 1.0, 'Ratio must be in (0,1) but got %f'%ratio
 
         wave_speeds = list(wave_speeds)
-
+        classes = list(wave_speeds)     # copy to sort
         split = int(output_shape*ratio)
         
-
-        wave_speeds.sort()      # modifies wave speeds
+        classes.sort()
 
         ground_truth = [0]*output_shape
-        ground_truth[:split] = [one_hot_it(wave_speeds.index(wave_speeds[0]),2)]*split
-        ground_truth[split:] = [one_hot_it(wave_speeds.index(wave_speeds[1]),2)]*(output_shape - split)
+        ground_truth[:split] = [one_hot_it(classes.index(wave_speeds[0]),2)]*split
+        ground_truth[split:] = [one_hot_it(classes.index(wave_speeds[1]),2)]*(output_shape - split)
                 
         return ground_truth
 
@@ -118,6 +117,86 @@ def ground_truth_1d_2layer(raw_labels,output_shape=100, num_cores = 4):
         for i in range(num_samples):
                 example = raw_labels[i]
                 result[i] = ground_truth_1d_2layer_single_example(example,output_shape=output_shape)
+        
+        result = np.array(result)
+        return result
+
+def ground_truth_1d_multilayer_single_example(labels_tensor,output_shape=100):
+        """
+        Assumes labels_tensor is a numpy array of the form 
+                (c1,c2,...,cN,r1,r2,...,r(n-1)) 
+        Corresponding to the wavespeeds in various regions seperated
+        at the ri. 
+
+        Parameters:
+        -----------
+                labels_tensor: np.array of shape (2num_classes - 1,)
+                output_shape: Shape of output array (int)
+        Returns:
+        --------
+                An array of size (output_shape,num_classes)
+        """
+
+        assert labels_tensor.shape[0] % 2 == 1, 'Labels must be an odd number but got {}'.format(labels_tensor.shape[0])
+
+        num_classes = int((labels_tensor.shape[0] + 1)/2)
+        wave_speeds = list(labels_tensor[:num_classes])
+        classes = list(wave_speeds)
+        ratios = labels_tensor[num_classes:]
+
+        for r in ratios:
+                assert 0 < r < 1, 'Ratio must be in (0,1) but got %f'%r
+
+        splits = [int(r*output_shape) for r in ratios]
+        
+        splits.sort()           # modifies splits
+        classes.sort()      # modifies wave speeds
+        
+        ground_truth = [0]*output_shape
+        ground_truth[:splits[0]] = [one_hot_it(classes.index(wave_speeds[0]),num_classes)]*splits[0]
+        for i in range(1,num_classes-1):
+                s1,s2 = splits[i-1], splits[i]
+                ground_truth[s1:s2] = [one_hot_it(classes.index(wave_speeds[i]),num_classes)]*(s2-s1)
+        ground_truth[splits[-1]:] = [one_hot_it(classes.index(wave_speeds[-1]),num_classes)]*(output_shape - splits[-1])
+        return ground_truth
+
+
+
+def ground_truth_1d_multi_layer_single_example_packed(labels_tensor_output_shape):
+        labels_tensor,output_shape = labels_tensor_output_shape
+        return ground_truth_1d_2layer_single_example(labels_tensor,output_shape=output_shape)
+
+def ground_truth_1d_multilayer(raw_labels,output_shape=100, num_cores = 4):
+        """
+        Assumes raw_labels is of the form [(c1, c2, ratio)] corresponding
+        to the ground truth where the top 100*ration % of pixels are c1 and 
+        the bottom 100*(1-ratio)% are c2. Returns an (num_samples, output_shape) long tensor 
+        with a 1 for high speed and 0 for low speed. 
+
+        Parameters:
+        -----------
+                raw_labels: np.array of shape (num_samples,3). Each row should correspond to ground truth 
+                        labels (c1,c2,ratio) as described above.
+                output_shape: Desired shape of 1D output for ground truth.
+                num_cores: (Deprecated) Number of cores to use in parallel processing.
+        Returns:
+        --------
+                ground_truth tensor of size output_shape. Each row is a 1 or 0 depending on whether it 
+                came from the higher or lower wavespeed region respectively. 
+        """
+        num_samples = raw_labels.shape[0]        
+        
+        # TODO: Look into why parallezation didn't improve performance.
+        #data = zip(raw_labels,[output_shape]*num_samples)
+        #with mp.Pool(processes = num_cores) as pool:
+        #        ground_truth = pool.map(ground_truth_1d_2layer_single_example_packed,data)
+
+        #pool.close()
+        #pool.join()
+        result = [0]*num_samples
+        for i in range(num_samples):
+                example = raw_labels[i]
+                result[i] = ground_truth_1d_multilayer_single_example(example,output_shape=output_shape)
         
         result = np.array(result)
         return result

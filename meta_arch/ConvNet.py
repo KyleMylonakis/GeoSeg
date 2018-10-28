@@ -1,7 +1,7 @@
 from meta_arch.MetaModel import MetaModel
 from keras.layers import Conv2D
 import json
-from blocks.building_blocks import binary_output_layer_1d
+from blocks.building_blocks import binary_output_layer_1d, multiclass_output_layer_1d
 
 # functions to use for final layer
 # should be added here. They must take as
@@ -11,7 +11,8 @@ from blocks.building_blocks import binary_output_layer_1d
 # Any parameters not covered in __init__(final_*) must
 # be supplied by meta_config.
 FINAL_LAYERS = {
-            'binary-1d': binary_output_layer_1d
+            'binary-1d': binary_output_layer_1d,
+            'multiclass-1d': multiclass_output_layer_1d
             }
 
 
@@ -22,7 +23,7 @@ class ConvNet(MetaModel):
                 num_layers = 2, 
                 num_classes = 2,
                 compression = 2,
-                name = 'CNN',
+                name = 'cnn',
                 block = None,
                 first_layer = False,
                 first_kernel_size = (3,1),
@@ -192,7 +193,7 @@ class ConvNet(MetaModel):
         """
         conv_config = self.meta_config['final_layer']
         final_fn = FINAL_LAYERS[conv_config['name']]
-        return lambda x: final_fn(inputs = x, num_receivers = self.num_receivers,**conv_config)
+        return lambda x: final_fn(inputs = x, num_receivers = self.num_receivers, num_classes = self.num_classes,**conv_config)
     
     def main_model_fn(self):
         """

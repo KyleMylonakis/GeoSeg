@@ -7,7 +7,7 @@ from keras.callbacks import History, TensorBoard, ModelCheckpoint
 
 from data_utils import interface_groundtruth_1d
 from data_utils import interface_groundtruth_max
-from data_utils import ground_truth_1d_2layer
+from data_utils import ground_truth_1d_2layer, ground_truth_1d_multilayer
 
 
 from blocks.DenseBlock import DenseBlock
@@ -43,7 +43,8 @@ BLOCKS = {
 LABEL_FN = {
         'interface_max':interface_groundtruth_max,
         'interface_1d':interface_groundtruth_1d,
-        '1d-2layer': ground_truth_1d_2layer
+        'binary-1d': ground_truth_1d_2layer,
+        'multiclass-1d': ground_truth_1d_multilayer
         }
 
 choices_msg = "Expected {} to be from {} but got {}"
@@ -60,7 +61,7 @@ if __name__ == '__main__':
         parser.add_argument('--label-fn',
                         help = 'A function to preprocess the labels',
                         type = str,
-                        default = ground_truth_1d_2layer,
+                        default = None,
                         choices = list(LABEL_FN.keys())+[None])
 
         args = parser.parse_args()
@@ -104,7 +105,8 @@ if __name__ == '__main__':
 
         # Process data if a function is given.
         if args.label_fn:
-                label_fn = args.label_fn
+                label_fn = LABEL_FN[args.label_fn]
+                print(args.label_fn)
                 y_train = label_fn(y_train, output_shape=x_train.shape[1])
                 y_eval = label_fn(y_eval, output_shape=x_train.shape[1])
 
