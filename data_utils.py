@@ -1,17 +1,15 @@
 import numpy as np 
 
-# Rewrite in a parallel or vectorized manner Map/Reduce formalism for example
-# May have to unroll the loops or something, or think about cache performance here.
+# TODO: Rewrite in a parallel or vectorized manner Map/Reduce formalism for example
+#       May have to unroll the loops or something, or think about cache performance here.
 def interface_groundtruth_1d(y,
                             output_shape=100,
                             std_ratio=0.1):
 
     interface_depth = y[:,2]
-    #total_depth = feature["total_depth"]
     total_depth = 20.0
     std = std_ratio*total_depth
     var = std**2
-    #print('var: ', var)
 
     ground_truth = np.linspace(0.0,total_depth,num=output_shape)
     #ground_truth = np.reshape(ground_truth,[output_shape,1])
@@ -49,3 +47,39 @@ def interface_groundtruth_max(y,
                         out[jj,kk,0] = 1.0
     return out
 
+def ground_truth_1d_2layer_single_example(labels_tensor,output_shape=100):
+        """
+        Assumes labels_tensor is a numpy array of the form (c1,c2,ratio) 
+        corresponding to the ground truth where the top 100*ration % of 
+        pixels are c1 and the bottom 100*(1-ratio)% are c2. Returns an 
+        output_shape long tensor with a 1 for high speed and 0 for low speed. 
+        """
+
+        wave_speeds = labels_tensor[:-1]
+        ratio = labels_tensor[-1]
+
+        wave_speeds = list(wave_speeds)
+
+        split = int(output_shape*ratio)
+        
+        ground_truth = [0]*output_shape
+        ground_truth[:split] = [wave_speeds[0]]*split
+        ground_truth[split:] = [wave_speeds[1]]*(output_shape - split)
+        
+        wave_speeds.sort()      # modifies wave speeds
+        ground_truth = [wave_speeds.index(x) for x in ground_truth]
+
+        return ground_truth
+
+def ground_truth_1d_2layer(labels_tensor,output_shape=100):
+        """
+        Assumes labels_tensor is of the form (num_samples, c1, c2, ratio) corresponding
+        to the ground truth where the top 100*ration % of pixels are c1 and 
+        the bottom 100*(1-ratio)% are c2. Returns an (num_samples, output_shape) long tensor 
+        with a 1 for high speed and 0 for low speed. 
+        """
+
+        ground_truth = np.zeros((output_shape,), dtype = np.float32)
+        
+
+        return None
