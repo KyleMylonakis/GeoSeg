@@ -33,6 +33,7 @@ for name in os.listdir():
 
 
 split = 0.8
+#split = 0
 if( (num_mat_files//2)*split > 1):
     n_train_files = int(np.ceil(num_mat_files//2* split))
 
@@ -59,8 +60,25 @@ else:
     train_labels = label_bucket[0:cut,...]
     eval_labels = label_bucket[cut:,...]
     #print(type(data_bucket), data_bucket.shape)
-    np.save('fga_data_set/train/data_bucket_1',train_bucket)
-    np.save('fga_data_set/train/label_bucket_1',train_labels)
-    np.save('fga_data_set/eval/data_bucket_2',eval_bucket)
-    np.save('fga_data_set/eval/label_bucket_2',eval_labels)
+    
+    np.save('fga_data_set/Pwave_data_set/FGA/train/data_bucket_1',train_bucket)
+    np.save('fga_data_set/Pwave_data_set/FGA/train/label_bucket_1',train_labels)
+    np.save('fga_data_set/Pwave_data_set/FGA/eval/data_bucket_2',eval_bucket)
+    np.save('fga_data_set/Pwave_data_set/FGA/eval/label_bucket_2',eval_labels)
+    
+    '''np.save('fga_data_set/Pwave_data_set/SEM/train/data_bucket_1',train_bucket)
+    np.save('fga_data_set/Pwave_data_set/SEM/train/label_bucket_1',train_labels)
+    np.save('fga_data_set/Pwave_data_set/SEM/eval/data_bucket_2',eval_bucket)
+    np.save('fga_data_set/Pwave_data_set/SEM/eval/label_bucket_2',eval_labels)'''
+    
+    '''np.save('fga_data_set/SP_wave_data_set/train/data_bucket_1',train_bucket)
+    np.save('fga_data_set/SP_wave_data_set/train/label_bucket_1',train_labels)
+    np.save('fga_data_set/SP_wave_data_set/eval/data_bucket_2',eval_bucket)
+    np.save('fga_data_set/SP_wave_data_set/eval/label_bucket_2',eval_labels)'''
+
+    '''np.save('fga_data_set/SP_wave_data_set/SEM/train/data_bucket_1',train_bucket)
+    np.save('fga_data_set/SP_wave_data_set/SEM/train/label_bucket_1',train_labels)
+    np.save('fga_data_set/SP_wave_data_set/SEM/eval/data_bucket_2',eval_bucket)
+    np.save('fga_data_set/SP_wave_data_set/SEM/eval/label_bucket_2',eval_labels)'''
+
     #raise Exception('Not enough data files. To seperate into training and evaluation data sets')

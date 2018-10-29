@@ -1,6 +1,11 @@
 %ordered_fortran_data = dir('./fga_data_set/L7/Stations*');
 %ordered_fortran_data = dir('./fga_data_set/original_data/Stations*');
 ordered_fortran_data = dir('./fga_data_set/Pwave_data_set/FGA/Stations*');
+%ordered_fortran_data = dir('./fga_data_set/Pwave_data_set/SEM/SEM*');
+%ordered_fortran_data = dir('./fga_data_set/SP_wave_data_set/SEM/SEM*');
+%ordered_fortran_data = dir('./fga_data_set/SP_wave_data_set/FGA/Stations*');
+%ordered_fortran_data = dir('./fga_data_set/SP_wave_data_set/PS_2048dt/LOHI/Stations*');
+%ordered_fortran_data = dir('./fga_data_set/SP_wave_data_set/SEM_PS_2048dt/SEM*');
 fortran_data = ordered_fortran_data(randperm(length(ordered_fortran_data)));
 
 % 20833 files corresponds to ~3 gigs of memory for the mat file
@@ -10,6 +15,8 @@ max_bucket_size = 20833;
 %max_bucket_size = 1000;
 num_files = length(fortran_data);
 num_labels = 3;
+%time_steps = 2048;
+time_steps = 6000;
 
 num_buckets = ceil(num_files/max_bucket_size);
 for current_bucket = 1:num_buckets
@@ -20,7 +27,7 @@ for current_bucket = 1:num_buckets
        end
     end
 
-    data_bucket = zeros(max_bucket_size,6000,3,3);
+    data_bucket = zeros(max_bucket_size,time_steps,3,3);
     label_bucket = zeros(max_bucket_size,num_labels);
 
     %count = 1;
@@ -29,12 +36,13 @@ for current_bucket = 1:num_buckets
 
         fprintf(1,'Opening %s\n',fortran_data(start + ii).name);
 
-        name = fortran_data(start + ii).name(10:end);
+        %name = fortran_data(start + ii).name(10:end);
+        name = fortran_data(start + ii).name;
         numbers = string(strsplit(name,'_'));
 
         y_value = zeros(1,num_labels);
         for iii = 1:num_labels
-            number = numbers(1,iii);
+            number = numbers(1,1+iii);
             y_value(iii) = str2num(number);
         end
 
@@ -42,7 +50,11 @@ for current_bucket = 1:num_buckets
 
 
         %fid = fopen(strcat('./fga_data_set/L7/' , fortran_data(start + ii).name),'rb');
+        fid = fopen(strcat('./fga_data_set/Pwave_data_set/SEM/' , fortran_data(start + ii).name),'rb');
         fid = fopen(strcat('./fga_data_set/Pwave_data_set/FGA/' , fortran_data(start + ii).name),'rb');
+        %fid = fopen(strcat('./fga_data_set/SP_wave_data_set/FGA/' , fortran_data(start + ii).name),'rb');
+        %fid = fopen(strcat('./fga_data_set/SP_wave_data_set/PS_2048dt/LOHI/', fortran_data(start + ii).name),'rb');
+        %fid = fopen(strcat('./fga_data_set/SP_wave_data_set/SEM_PS_2048dt/', fortran_data(start + ii).name),'rb');
         tmp = fread(fid,inf,'double');
         normalize_tmp = tmp./max(max(max(abs(tmp))));
         data_bucket(ii,1:end) = normalize_tmp;

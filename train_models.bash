@@ -1,10 +1,11 @@
 # Training script for the various neural networks
-SAVE_PREFIX=experiments/trained_models/
-#SAVE_PREFIX=test/experiments/trained_models/
-LOAD_PREFIX=experiments/config/
+SAVE_PREFIX=experiments/trained_models/SP_Wave/
+#SAVE_PREFIX=experiments/trained_models/P_wave/
+LOAD_PREFIX=experiments/config/SP_Wave/
+#LOAD_PREFIX=experiments/config/P_Wave/
 #EXPERIMENTS=(bn_on/two_layer/ bn_on/three_layer/ bn_off/two_layer/ bn_off/three_layer/)
-EXPERIMENTS=(bn_on/three_layer/ bn_off/two_layer/ bn_off/three_layer/)
-NETWORKS=(UNet_conv UNet_dense UNet_res AE_conv AE_dense AE_res)
+EXPERIMENTS=(bn_on/two_layer/ bn_on/three_layer/)
+NETWORKS=(UNet_dense AE_dense)
 
 for EXP in ${EXPERIMENTS[*]}; do
     for NET in ${NETWORKS[*]}; do
