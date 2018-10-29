@@ -1,7 +1,7 @@
 {
   "model": {
     "meta_arch": {
-      "name": "UNet",
+      "name": "unet",
       "num_receivers": 6,
       "first_layer": {
         "kernel_size": [
@@ -45,23 +45,23 @@
     }
   },
   "train": {
-    "data": "fga_data_set/train/data_bucket_1.npy",
-    "labels": "fga_data_set/train/label_bucket_1.npy",
-    "downsample": 125,
+    "data": "PATH/TO/DATA.npy",
+    "labels": "PATH/TO/LABELS.npy",
+    "downsample": 25,
     "optimizer": {
       "algorithm": "nadam",
       "parameters": {
         "lr": 0.002
       }
     },
-    "batch_size": 32,
-    "epochs": 3500,
+    "batch_size": 8,
+    "epochs": 1,
     "shuffle": true,
     "save_every": 1
   },
   "eval": {
-    "data": "fga_data_set/eval/data_bucket_2.npy",
-    "labels": "fga_data_set/eval/label_bucket_2.npy",
+    "data": "PATH/TO/DATA.npy",
+    "labels": "PATH/TO/LABELS.npy",
     "batch_size": 8,
     "shuffle": false
   }

@@ -7,21 +7,24 @@ from keras.callbacks import History, TensorBoard, ModelCheckpoint
 
 from data_utils import interface_groundtruth_1d
 from data_utils import interface_groundtruth_max
-import argparse
+from data_utils import ground_truth_1d_2layer, ground_truth_1d_multilayer
+
 
 from blocks.DenseBlock import DenseBlock
 from blocks.ConvBlock import ConvBlock, ResBlock
+
 from meta_arch.UNet import UNet
-from meta_arch.AutoEncoder import AutoEncoder
-from meta_arch.ConvNet import CNN
+from meta_arch.EncoderDecoder import EncoderDecoder
+from meta_arch.ConvNet import ConvNet
 
 import json
 import os 
+import argparse
 
 MODEL_TYPES = {
-        'UNet': UNet,
-        'AE': AutoEncoder,
-        'CNN': CNN
+        'unet': UNet,
+        'encoder-decoder': EncoderDecoder,
+        'cnn': ConvNet
         }
 
 OPTIMIZERS = {
@@ -35,11 +38,13 @@ BLOCKS = {
         'dense': DenseBlock,
         'res': ResBlock,
         'conv': ConvBlock
-}
+        }
 
 LABEL_FN = {
         'interface_max':interface_groundtruth_max,
-        'interface_1d':interface_groundtruth_1d
+        'interface_1d':interface_groundtruth_1d,
+        'binary-1d': ground_truth_1d_2layer,
+        'multiclass-1d': ground_truth_1d_multilayer
         }
 
 choices_msg = "Expected {} to be from {} but got {}"
@@ -56,7 +61,7 @@ if __name__ == '__main__':
         parser.add_argument('--label-fn',
                         help = 'A function to preprocess the labels',
                         type = str,
-                        default = interface_groundtruth_max,
+                        default = None,
                         choices = list(LABEL_FN.keys())+[None])
 
         args = parser.parse_args()
@@ -98,11 +103,10 @@ if __name__ == '__main__':
 
         assert x_train.shape[0] == y_train.shape[0], 'Number of samples does not match between station data and their labels'
 
-        # Process labels
-        # TODO: Make the label processor a choosable from the config. 
         # Process data if a function is given.
         if args.label_fn:
-                label_fn = args.label_fn
+                label_fn = LABEL_FN[args.label_fn]
+                print(args.label_fn)
                 y_train = label_fn(y_train, output_shape=x_train.shape[1])
                 y_eval = label_fn(y_eval, output_shape=x_train.shape[1])
 
@@ -115,7 +119,7 @@ if __name__ == '__main__':
         # Create meta_arch instance        
         model = MODEL_TYPES[model_type](block = block, meta_config = meta_arch_config)
         
-        if model_type == 'CNN':
+        if model_type == 'cnn':
                 red_factor = 2**(meta_arch_config['num_layers'])
 
                 y_train = y_train[:,::red_factor,...]
@@ -129,6 +133,7 @@ if __name__ == '__main__':
         # Get the optimizer
         optimizer_type = train_config['optimizer']['algorithm']
         assert optimizer_type in OPTIMIZERS.keys(), choices_msg.format('optimizer',OPTIMIZERS.keys(),optimizer_type)
+
         optimizer_config = train_config['optimizer']['parameters']
         optimizer = OPTIMIZERS[optimizer_type](**optimizer_config)
         
@@ -149,8 +154,9 @@ if __name__ == '__main__':
                 os.makedirs(args.save_dir)
 
         # Make logs directory for tensorboard if needed
-        if not os.path.isdir(args.save_dir +'/logs/'):
-                os.makedirs(args.save_dir + '/logs/')
+        logs_dir = os.path.join(args.save_dir,'logs')
+        if not os.path.isdir(logs_dir):
+                os.makedirs(logs_dir)
         
         model_path = os.path.join(args.save_dir,'model.h5')
         config_path = os.path.join(args.save_dir,'config.json')
@@ -160,7 +166,9 @@ if __name__ == '__main__':
                 save_every = train_config['save_every']
         else:
                 save_every = 100
-        tensorboard = TensorBoard(log_dir=args.save_dir + '/logs/', batch_size=batch_size, write_images=True)
+        
+        tb_dir = os.path.join(args.save_dir,'logs')
+        tensorboard = TensorBoard(log_dir=tb_dir, batch_size=batch_size, write_images=True)
         mdl_chkpt = ModelCheckpoint(mdl_chkpt_path, monitor='val_acc',verbose=1,  period=save_every, save_best_only=True)
 
         from contextlib import redirect_stdout
@@ -169,7 +177,6 @@ if __name__ == '__main__':
                 with redirect_stdout(f):
                         model.summary()
 
-        #epochs=2
         model.fit(x_train,y_train,
                 epochs=epochs,
                 shuffle=shuffle,
