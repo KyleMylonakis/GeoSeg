@@ -83,11 +83,11 @@ class ConvNet(MetaModel):
             num_layers: Number of blocks in main_model_fn().
             compression: The factor to downsample input at each
                 block.
-            num_receivers: Number of recievers in input. If input
-                is of shape (N,r,f) then num_recievers should be r. 
+            num_receivers: Number of receivers in input. If input
+                is of shape (N,r,f) then num_receivers should be r. 
             block: A Block object. 
             first_layer: A boolean for whether the model should have
-                a first layer added to its's meta_arch config.
+                a first layer added to it's meta_arch config.
         
         Methods:
         --------
@@ -146,9 +146,14 @@ class ConvNet(MetaModel):
                     meta_config['first_layer'][f] = default_first_layer_config[f]
 
         # Put everything into a model config
-        model_config = {'model':{'meta_arch':meta_config}}
-        model_config['model']['block'] = block.config
-        
+        #model_config = {'model':{'meta_arch':meta_config}}
+        #model_config['model']['block'] = block.config
+        model_config = {
+                        'model': {
+                            'meta_arch': meta_config,
+                            'block': block.config
+                            }
+                        }
         # Set some useful attributes
         self.num_layers = meta_config['num_layers']
         self.compression = meta_config['compression']

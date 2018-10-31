@@ -3,6 +3,8 @@ from keras import Model, Input
 from keras.layers import Reshape
 import json 
 
+from transfer.TransferBranch import TransferBranch
+
 class MetaModel(ABC):
     """
     An abstract base class for all meta-architectures. Each
@@ -45,6 +47,11 @@ class MetaModel(ABC):
         super().__init__()
         self.config = config
         self.meta_config = config['model']['meta_arch']
+
+        if 'transfer_branch' in self.meta_config.keys():
+            self.transfer_branch = TransferBranch(transfer_config = self.meta_config['transfer_branch'])
+        else:
+            self.transfer_branch = None
         
         # A check for resblocks to make sure fiters match up
         # for first layer.
@@ -63,7 +70,7 @@ class MetaModel(ABC):
         Returns:
         --------
             None. Creates the file path.json from the 
-            configuration dictioanry.
+            configuration dictionary.
         """
         with open(path+'.json','w') as f:
                 json.dump(self.config,f,indent=2)
@@ -125,6 +132,10 @@ class MetaModel(ABC):
         self.input_shape = input_shape
 
         inputs = Input(shape = input_shape, name = 'inputs')
+
+        if self.transfer_branch is not None:
+            out = self.transfer_branch.transfer_inputs_branch()(inputs)
+
         if self.first_layer:
             out = self.first_layer_fn()(inputs)
         else:

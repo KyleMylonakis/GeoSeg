@@ -21,7 +21,7 @@ class DenseBlock(ConvBlock):
                 block_layers = 4,
                 base_kernel=(3,1),
                 trans_kernel = (2,1),
-                batch_norm = False,
+                batch_norm = True,
                 base_activation = 'relu',
                 trans_activation = 'relu',
                 dropout = 0.5,
