@@ -448,4 +448,33 @@ def multiclass_output_layer_1d(inputs,
                 padding = "same")(out)
     return out
 
+def multiclass_output_layer_2d(inputs,
+                    num_classes = 2,
+                    activation = 'softmax',
+                    dropout = 0.5,
+                    name = 'softmax'):
+    """
+    A little wrapper for a 2D so
+    tensors = (t-direction, x-direction, filters)
+    A final layer for 2d multi velocity detection. Outputs classes
+    probabilities at each pixel.
+    
+    (Nt,Nx,f) -> (Nt,Nx,num_classes)
+
+    Parameters:
+    -----------
+        inputs: Tensor of size (Nt,Nx,f)
+        activation: Activation to use in second layer. 
+        dropout: Dropout probability for first layer.
+        name: Name to use for block.
+    Returns:
+    --------
+        A (Nt,Nx,num_classes) tensor where out[n,m,j] is the probability that pixes (n,m) is
+        of class j. Needs to be reshaped before use with loss. 
+    """
+    out = Conv2D(filters = num_classes,
+                kernel_size = (1,1),
+                activation = activation,
+                padding = "same")(inputs)
+    return out
 
