@@ -2,7 +2,7 @@
 
 ## About
 
-This is an API for building neural network for a particular kind of inverse problem arising in geophysics as described in [Hately, Mylonakis, Roberst, Xu][1]. The frozen Gaussian approximation ([FGA][2]) is a mathematical technique to quickly solve an approximation to the 3D elastic wave equation. The FGA solves for the waveform given an initial epicenter and boundary data. The full inverse problem would be to determine the boundary data and epicenter from the waveform at a specified set of receivers.
+This is an API for building neural network for a particular kind of inverse problem arising in geophysics as described in [Hately, Mylonakis, Roberts, Yang][1]. The frozen Gaussian approximation ([FGA][2]) is a mathematical technique to quickly solve an approximation to the 3D elastic wave equation. The FGA solves for the waveform given an initial epicenter and boundary data. The full inverse problem would be to determine the boundary data and epicenter from the waveform at a specified set of receivers.
 
 The goal of this API is to be able to quickly build different neural network architectures to test increasingly more complicated versions of this inverse problem.
 
