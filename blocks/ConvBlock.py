@@ -13,6 +13,7 @@ class ConvBlock(Blocks):
     def __init__(self, 
                 config = None,
                 filters = 4,
+                dimensions = 1,
                 base_kernel = (3,1),
                 trans_kernel = (2,1),
                 batch_norm = True,
@@ -59,6 +60,7 @@ class ConvBlock(Blocks):
         # in case configuration is missing parameters.
         default_config = {
                     'name':name,
+                    'dimensions':dimensions,
                     'base':{},
                     'transition':{},
                     'batch_norm': batch_norm,
@@ -96,8 +98,16 @@ class ConvBlock(Blocks):
         self.batch_norm = block_config['batch_norm']
         self.name = block_config['name']
         self.base_config = block_config['base']
+        self.dimensions = block_config['dimensions']
         self.trans_config = block_config['transition']
 
+        assert self.dimensions in [1,2], 'Dimension must be in [1,2] but is {}'.format(self.dimensions)
+        
+        if self.dimensions == 2:
+            self.transition_layer = building_blocks.transition_layer_2D
+        if self.dimensions == 1:
+            self.transition_layer = building_blocks.transition_layer
+        
         #TODO: Make compression a parameter for blocks 
         #       that is set by meta-arch.
         self.compression = block_config['transition']['compression']
@@ -125,11 +135,12 @@ class ConvBlock(Blocks):
     def up_sample(self,tag,filters, padding = None):
         up_config = self.trans_config
         blk_name = '/'.join([self.config['name'],tag])
+        t_layer = self.transition_layer
         if padding:
             up_config['padding'] = padding
         # Wrap the base function into a function
         # to match keras layer style.
-        return lambda x: building_blocks.transition_layer(inputs = x,
+        return lambda x: t_layer(inputs = x,
                                     filters=filters,
                                     name = blk_name,
                                     up_or_down='up', 
@@ -138,11 +149,12 @@ class ConvBlock(Blocks):
     def down_sample(self,tag,filters, padding = None):
         down_config = self.trans_config
         blk_name = '/'.join([self.config['name'],tag])
+        t_layer = self.transition_layer
         if padding:
             down_config['padding'] = padding
         # Wrap the base function into a function
         # to match keras layer style.
-        return lambda x: building_blocks.transition_layer(inputs = x,
+        return lambda x: t_layer(inputs = x,
                                     filters=filters,
                                     name = blk_name,
                                     up_or_down='down', 
@@ -151,6 +163,7 @@ class ConvBlock(Blocks):
 class ResBlock(ConvBlock):
     def __init__(self, 
                 config = None,
+                dimensions = 1,
                 filters = 4,
                 base_kernel = (3,1),
                 trans_kernel = (2,1),

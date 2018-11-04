@@ -17,6 +17,7 @@ import blocks.building_blocks as building_blocks
 class DenseBlock(ConvBlock):
     def __init__(self, 
                 config = None,
+                dimensions = 1,
                 filters = 4,
                 block_layers = 4,
                 base_kernel=(3,1),
