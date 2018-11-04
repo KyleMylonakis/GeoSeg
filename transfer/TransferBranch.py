@@ -1,12 +1,11 @@
-from transfer.transfer_blocks import basic_down_up_sample, basic_up_sample, residual_down_up_sample, residual_up_sample
-from keras.layers import Lambda
+#
+#   The TransferBranch class. These are small fully convolutional networks used 
+#   to learn how to reshape input data. The intent is to increase the receiver resolution 
+#   and perhaps downsample the time resolution.
+#
 
-TRANSFER_BLOCKS = {
-    'basic-up': basic_up_sample,
-    'basic-down-up': basic_down_up_sample,
-    'res-up': residual_up_sample,
-    'res-down-up': residual_down_up_sample
-    }
+from transfer import transfer_blocks
+from keras.layers import Lambda
 
 class TransferBranch():
     def __init__(self,
@@ -20,7 +19,29 @@ class TransferBranch():
                 padding = 'same',
                 dropout = 0.5
                 ):
+        """
+        An input transfer branch to add to a meta_arch. Essentially
+        a feed forward CNN designed to reshape input based on the 
+        transfer block chosen. A k-layer transfer branch with input
+        shape (N,r,3) will have output
+            up: (N,r*2**k,f)
+            down_up: (n/(2**k),r*2**k,f)
         
+        The downsampling is performed by strided convolutions and the up
+        sampling by strided convolution transposes.
+        
+        Parameters:
+        -----------
+            transfer_config: A dictionary setting some or all of the below parameters. (dict)
+            num_layers: The number of layers in the transfer branch. (int)
+            transfer_block: Name of a transfer block from transfer_blocks.TRANSFER_BLOCKS. (str)
+            activation: Name of a keras activation function. (str)
+            batch_norm: Whether or not to apply batch normalization. (bool)
+            filters: Number of output filters. Can be lowered if bottlenecking.(int)
+            kernel_size: The size of kernel to use for the convolution.
+            dropout: The percent probability for each individual layer's dropout
+        """
+
         default_config = {
                     'num_layers': num_layers,
                     'block' : 
@@ -44,9 +65,9 @@ class TransferBranch():
         self.config = transfer_config
 
         self.block_name = transfer_config['block']['name']
-        assert self.block_name in TRANSFER_BLOCKS.keys(), 'Expected transfer_block from {} but got {}'.format(TRANSFER_BLOCKS.keys(),self.block_name)
+        assert self.block_name in transfer_blocks.TRANSFER_BLOCKS.keys(), 'Expected transfer_block from {} but got {}'.format(transfer_blocks.TRANSFER_BLOCKS.keys(),self.block_name)
         
-        self.block_fn = TRANSFER_BLOCKS[self.block_name]
+        self.block_fn = transfer_blocks.TRANSFER_BLOCKS[self.block_name]
 
 
     def transfer_inputs_branch(self):
@@ -60,8 +81,5 @@ class TransferBranch():
         for i in range(num_layers):
             blk_name = 'transfer_branch_%d'%i
             block_params = {k: self.config['block'][k] for k in self.config['block'].keys() if k != 'name'}
-            print(block_params)
-            #block_params['name'] = blk_name
-            out = self.block_fn(inputs = out, name = blk_name, **block_params)
-        
+            out = self.block_fn(inputs = out, name = blk_name, **block_params)        
         return out

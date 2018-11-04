@@ -1,3 +1,13 @@
+#   
+#   Blocks to use for input transfer branches.
+#   ALL blocks should take as input: 
+#   
+#   kernel_size, filters, activation, batch_norm, padding, and dropout
+#   
+#   Blocks can take additional parameters but default 
+#   TransferBranches will use these parameters.
+
+
 from keras.layers import Conv2D, Conv2DTranspose, Dropout, BatchNormalization, Activation
 from blocks.building_blocks import conv_layer, residual_layer, bn_conv_layer, bn_residual_layer
 
@@ -248,3 +258,11 @@ def residual_down_up_sample(inputs,
                             dropout=dropout,
                             name=name+'/residual' )
     return out 
+
+# Naming the final blocks
+TRANSFER_BLOCKS = {
+    'basic-up': basic_up_sample,
+    'basic-down-up': basic_down_up_sample,
+    'res-up': residual_up_sample,
+    'res-down-up': residual_down_up_sample
+    }
