@@ -477,4 +477,3 @@ def multiclass_output_layer_2d(inputs,
                 activation = activation,
                 padding = "same")(inputs)
     return out
-

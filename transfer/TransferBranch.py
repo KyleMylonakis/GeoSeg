@@ -9,7 +9,8 @@ from keras.layers import Lambda
 
 class TransferBranch():
     def __init__(self,
-                transfer_config = None,
+                config = None,
+                input_shape = [32,32,3],
                 num_layers = 2,
                 transfer_block = 'basic-up',
                 kernel_size = (3,3),
@@ -32,7 +33,7 @@ class TransferBranch():
         
         Parameters:
         -----------
-            transfer_config: A dictionary setting some or all of the below parameters. (dict)
+            config: A dictionary setting some or all of the below parameters. (dict)
             num_layers: The number of layers in the transfer branch. (int)
             transfer_block: Name of a transfer block from transfer_blocks.TRANSFER_BLOCKS. (str)
             activation: Name of a keras activation function. (str)
@@ -44,37 +45,49 @@ class TransferBranch():
 
         default_config = {
                     'num_layers': num_layers,
-                    'block' : 
-                    {'name': transfer_block,
-                    'kernel_size' : kernel_size,
-                    'filters' : filters,
-                    'activation': activation,
-                    'batch_norm': batch_norm,
-                    'padding' : padding,
-                    'dropout' : dropout}}
+                    'input_shape': input_shape,
+                    'block' : {
+                        'name': transfer_block,
+                        'kernel_size' : kernel_size,
+                        'filters' : filters,
+                        'activation': activation,
+                        'batch_norm': batch_norm,
+                        'padding' : padding,
+                        'dropout' : dropout
+                            }
+                        }
 
-        if transfer_config is None:
-            transfer_config = default_config
+        if config is None:
+            config = default_config
         
         else:
-            missing_keys = [k for k in default_config if k not in transfer_config.keys()]
+            missing_keys = [k for k in default_config if k not in config.keys()]
             
             for k in missing_keys:
-                transfer_config[k] = default_config[k]
-        
-        self.config = transfer_config
-
-        self.block_name = transfer_config['block']['name']
+                config[k] = default_config[k]
+            # Add in missing bock keys
+            missing_block_keys = [k for k in default_config['block'] if k not in config['block'].keys()]
+            
+            for k in missing_block_keys:
+                config['block'][k] = default_config['block'][k]
+            
+        self.config = config
+        self.input_shape = config['input_shape']
+        self.block_name = config['block']['name']
         assert self.block_name in transfer_blocks.TRANSFER_BLOCKS.keys(), 'Expected transfer_block from {} but got {}'.format(transfer_blocks.TRANSFER_BLOCKS.keys(),self.block_name)
         
-        self.block_fn = transfer_blocks.TRANSFER_BLOCKS[self.block_name]
-
+        # First element is block second is output shape function
+        self.block_data = transfer_blocks.TRANSFER_BLOCKS[self.block_name]
+        self.block_fn = self.block_data[0] 
+        
+        self.num_layers = config['num_layers']
+        self.output_shape = self.block_data[1](self.input_shape,self.num_layers)
 
     def transfer_inputs_branch(self):
         return lambda x: self.__transfer_inputs_fn(x)
 
     def __transfer_inputs_fn(self,inputs):
-        num_layers = self.config['num_layers']
+        num_layers = self.num_layers
 
         out = inputs 
         
@@ -83,3 +96,4 @@ class TransferBranch():
             block_params = {k: self.config['block'][k] for k in self.config['block'].keys() if k != 'name'}
             out = self.block_fn(inputs = out, name = blk_name, **block_params)        
         return out
+    

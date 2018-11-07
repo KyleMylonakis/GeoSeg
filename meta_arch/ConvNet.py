@@ -19,12 +19,13 @@ FINAL_LAYERS = {
 class ConvNet(MetaModel):
     def __init__(self,
                 meta_config=None,
+                block = None,
+                transfer_branch  = None,
                 num_receivers=3,
                 num_layers = 2, 
                 num_classes = 2,
                 compression = 2,
                 name = 'cnn',
-                block = None,
                 first_layer = False,
                 first_kernel_size = (3,1),
                 first_activation = 'relu',
@@ -145,13 +146,23 @@ class ConvNet(MetaModel):
                 for f in first_missing:
                     meta_config['first_layer'][f] = default_first_layer_config[f]
 
+        # Check what you have 
+
+        assert block is not None, 'block must be specified to construct model'
+
+        if transfer_branch:
+            transfer_branch_config = transfer_branch.config 
+            self.transfer = transfer_branch
+        else:
+            transfer_branch_config = None
+            self.transfer = None
+        #assert False
         # Put everything into a model config
-        #model_config = {'model':{'meta_arch':meta_config}}
-        #model_config['model']['block'] = block.config
         model_config = {
                         'model': {
                             'meta_arch': meta_config,
-                            'block': block.config
+                            'block': block.config,
+                            'transfer_branch': transfer_branch_config
                             }
                         }
         # Set some useful attributes
