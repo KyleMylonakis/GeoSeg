@@ -17,6 +17,8 @@ from meta_arch.UNet import UNet
 from meta_arch.EncoderDecoder import EncoderDecoder
 from meta_arch.ConvNet import ConvNet
 
+from transfer.TransferBranch import TransferBranch
+
 import json
 import os 
 import argparse
@@ -40,12 +42,21 @@ BLOCKS = {
         'conv': ConvBlock
         }
 
+#TRANSFER_BRANCHES = {
+#    'basic-up': basic_up_sample,
+#    'basic-down-up': basic_down_up_sample,
+##    'res-up': residual_up_sample,
+#    'res-down-up': residual_down_up_sample
+#    }
+
 LABEL_FN = {
         'interface_max':interface_groundtruth_max,
         'interface_1d':interface_groundtruth_1d,
         'binary-1d': ground_truth_1d_2layer,
         'multiclass-1d': ground_truth_1d_multilayer
         }
+
+
 
 choices_msg = "Expected {} to be from {} but got {}"
 if __name__ == '__main__':
@@ -83,6 +94,11 @@ if __name__ == '__main__':
         assert model_type in MODEL_TYPES.keys(), choices_msg.format('meta_arch name',MODEL_TYPES.keys(),model_type)
         assert block_type in BLOCKS.keys(), choices_msg.format('block name', BLOCKS.keys(), block_type)
         
+        if 'transfer_branch' in model_config.keys():
+                transfer_config = model_config['transfer_branch']
+        else:
+                train_config = None
+
         # Handle the data
         # Load Data
         ds_fact = train_config['downsample']
@@ -115,9 +131,9 @@ if __name__ == '__main__':
         
         # Block instance
         block = BLOCKS[block_type](block_config)
-
+        tb = TransferBranch(config = transfer_config)
         # Create meta_arch instance        
-        model = MODEL_TYPES[model_type](block = block, meta_config = meta_arch_config)
+        model = MODEL_TYPES[model_type](block = block, meta_config = meta_arch_config, transfer_branch = tb)
         
         if model_type == 'cnn':
                 red_factor = 2**(meta_arch_config['num_layers'])

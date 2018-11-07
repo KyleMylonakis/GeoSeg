@@ -62,7 +62,6 @@ class TransferBranch():
             for k in missing_keys:
                 config[k] = default_config[k]
             # Add in missing bock keys
-            print(config)
             missing_block_keys = [k for k in default_config['block'] if k not in config['block'].keys()]
             
             for k in missing_block_keys:

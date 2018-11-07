@@ -24,12 +24,13 @@ from keras.layers import Conv2D
 class EncoderDecoder(ConvNet):
     def __init__(self,
                 meta_config=None,
+                transfer_branch = None,
+                block = None,
                 num_layers = 2, 
                 num_classes = 2,
                 compression = 2,
                 init_filters = 4,
                 name = 'EnDe',
-                block = None,
                 first_layer = False,
                 first_kernel_size = (3,1),
                 first_activation = 'relu',
@@ -47,11 +48,12 @@ class EncoderDecoder(ConvNet):
         which now wraps  __encoder_decorder_fn().
         """
         super().__init__(meta_config = meta_config,
+                        transfer_branch=transfer_branch,
+                        block = block,
                         num_layers=num_layers,
                         num_classes=num_classes,
                         compression=compression,
                         name = name,
-                        block = block,
                         first_layer = first_layer,
                         first_kernel_size = first_kernel_size,
                         first_activation = first_activation,
