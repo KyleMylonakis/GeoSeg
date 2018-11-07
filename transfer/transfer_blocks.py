@@ -259,10 +259,21 @@ def residual_down_up_sample(inputs,
                             name=name+'/residual' )
     return out 
 
+def up_output_shape(input_shape, num_layers, factor = 2):
+    result = input_shape
+    result[1] = input_shape[1]*(2**num_layers)
+    return result
+
+def down_up_output_shape(input_shape, num_layers, factor = 2):
+    result = input_shape
+    result[0] = input_shape[0]//(2**num_layers)
+    result[1] = input_shape[1]*(2**num_layers)
+    return result
+
 # Naming the final blocks
 TRANSFER_BLOCKS = {
-    'basic-up': basic_up_sample,
-    'basic-down-up': basic_down_up_sample,
-    'res-up': residual_up_sample,
-    'res-down-up': residual_down_up_sample
+    'basic-up': [basic_up_sample, up_output_shape],
+    'basic-down-up': [basic_down_up_sample, down_up_output_shape],
+    'res-up': [residual_up_sample, up_output_shape],
+    'res-down-up': [residual_down_up_sample,down_up_output_shape]
     }

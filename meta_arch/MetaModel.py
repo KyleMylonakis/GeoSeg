@@ -135,7 +135,6 @@ class MetaModel(ABC):
 
         model = Model(inputs = inputs, outputs = out)
 
-        model.summary()
         return model
 
 

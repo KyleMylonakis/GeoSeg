@@ -132,6 +132,7 @@ if __name__ == '__main__':
         
         # Block instance
         block = BLOCKS[block_type](block_config)
+        
         if transfer_config:
                 tb = TransferBranch(config = transfer_config)
         else:
