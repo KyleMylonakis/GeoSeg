@@ -38,18 +38,20 @@ class MetaModel(ABC):
         -----------
             config: A dictionary defining the model architecture.
                 Ex: config = {'model':{
-                        'meta_arch':{...},...}
-                        'block':{...}}
+                        'meta_arch':{...},...},
+                        'block':{...},
+                        'transfer_branch':{...}}
         Returns:
         -----------
             A MetaModel class.
         """
         super().__init__()
         self.config = config
-        self.meta_config = config['model']['meta_arch']
+        self.model_config = config['model']
+        self.meta_config = self.model_config['meta_arch']
 
-        if 'transfer_branch' in self.meta_config.keys():
-            self.transfer_branch = TransferBranch(transfer_config = self.meta_config['transfer_branch'])
+        if self.transfer:
+            self.transfer_branch = TransferBranch(config = self.model_config['transfer_branch'])
         else:
             self.transfer_branch = None
         
@@ -59,21 +61,6 @@ class MetaModel(ABC):
             msg = "Residual blocks must have a first layer"
             assert self.first_layer, msg
     
-    def dump_config(self,path):
-        """
-        Dumps the config dictionary as path.json
-        
-        Parameters:
-        -----------
-            path: The path to save the config json.
-        
-        Returns:
-        --------
-            None. Creates the file path.json from the 
-            configuration dictionary.
-        """
-        with open(path+'.json','w') as f:
-                json.dump(self.config,f,indent=2)
 
     @abstractmethod
     def main_model_fn(self):
@@ -134,16 +121,36 @@ class MetaModel(ABC):
         inputs = Input(shape = input_shape, name = 'inputs')
 
         if self.transfer_branch is not None:
+            print('TRANSFER BRANCH FOUND')
             out = self.transfer_branch.transfer_inputs_branch()(inputs)
-
-        if self.first_layer:
-            out = self.first_layer_fn()(inputs)
         else:
             out = inputs
+        
+        if self.first_layer:
+            out = self.first_layer_fn()(out)
 
         out = self.main_model_fn()(out)
         out = self.final_layer_fn()(out)
         out = Reshape(output_shape)(out)
 
         model = Model(inputs = inputs, outputs = out)
+
+        model.summary()
         return model
+
+
+    def dump_config(self,path):
+        """
+        Dumps the config dictionary as path.json
+        
+        Parameters:
+        -----------
+            path: The path to save the config json.
+        
+        Returns:
+        --------
+            None. Creates the file path.json from the 
+            configuration dictionary.
+        """
+        with open(path+'.json','w') as f:
+                json.dump(self.config,f,indent=2)

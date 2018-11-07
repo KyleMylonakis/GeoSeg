@@ -26,12 +26,13 @@ from meta_arch.ConvNet import ConvNet
 class UNet(ConvNet):
     def __init__(self,
                 meta_config=None,
+                block = None,
+                transfer_branch = None,
                 num_layers = 2, 
                 num_classes = 2,
                 compression = 2,
                 init_filters = 4,
                 name = 'UNet',
-                block = None,
                 first_layer = False,
                 first_kernel_size = (3,1),
                 first_activation = 'relu',
@@ -49,11 +50,12 @@ class UNet(ConvNet):
         which now wraps  __unet_model_fn().
         """
         super().__init__(meta_config = meta_config,
+                        block = block,
+                        transfer_branch= transfer_branch,
                         num_layers=num_layers,
                         num_classes=num_classes,
                         compression=compression,
                         name = name,
-                        block = block,
                         first_layer = first_layer,
                         first_kernel_size = first_kernel_size,
                         first_activation = first_activation,

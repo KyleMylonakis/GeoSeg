@@ -97,7 +97,7 @@ if __name__ == '__main__':
         if 'transfer_branch' in model_config.keys():
                 transfer_config = model_config['transfer_branch']
         else:
-                train_config = None
+                transfer_config = None
 
         # Handle the data
         # Load Data
@@ -117,6 +117,7 @@ if __name__ == '__main__':
         x_train = x_train[:,::ds_fact,...]
         x_eval = x_eval[:,::ds_fact,...]
 
+        
         assert x_train.shape[0] == y_train.shape[0], 'Number of samples does not match between station data and their labels'
 
         # Process data if a function is given.
@@ -131,7 +132,10 @@ if __name__ == '__main__':
         
         # Block instance
         block = BLOCKS[block_type](block_config)
-        tb = TransferBranch(config = transfer_config)
+        if transfer_config:
+                tb = TransferBranch(config = transfer_config)
+        else:
+                tb = None
         # Create meta_arch instance        
         model = MODEL_TYPES[model_type](block = block, meta_config = meta_arch_config, transfer_branch = tb)
         

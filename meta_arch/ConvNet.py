@@ -154,7 +154,6 @@ class ConvNet(MetaModel):
             transfer_branch_config = transfer_branch.config 
             self.transfer = transfer_branch
         else:
-            print('No Transfer branch')
             transfer_branch_config = None
             self.transfer = None
         #assert False
