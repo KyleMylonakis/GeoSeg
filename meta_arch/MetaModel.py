@@ -111,10 +111,10 @@ class MetaModel(ABC):
         --------
             A keras Model object.
         """
-        if output_shape is None:
-            output_shape = input_shape[0]
-        
-        output_shape = [output_shape] + [self.meta_config['num_classes']]
+        #if output_shape is None:
+        #    output_shape = input_shape[0]
+        #
+        #    output_shape = list(output_shape) + [self.meta_config['num_classes']]
         
         self.input_shape = input_shape
 
@@ -134,7 +134,6 @@ class MetaModel(ABC):
         out = Reshape(output_shape)(out)
 
         model = Model(inputs = inputs, outputs = out)
-
         return model
 
 
