@@ -149,7 +149,8 @@ if __name__ == '__main__':
                 model = model.build_model(input_shape=x_train.shape[1:], output_shape=y_train.shape[1])
         
         else:
-                model = model.build_model(input_shape=x_train.shape[1:])
+                
+                model = model.build_model(input_shape=x_train.shape[1:], output_shape= y_train.shape[1:])
 
         # Get the optimizer
         optimizer_type = train_config['optimizer']['algorithm']
