@@ -6,6 +6,34 @@ import numpy as np
 This file converts Jim's fortran data into data and label npy files split
 between training and evaulation datasets
 '''
+
+def precision_chop(ls, precs):
+    """
+    Converts a list strings into floats with 
+    a predefined decimal placement. 
+    Ex:
+        (['abc','def'],[0,2]) -> [.abc,de.f]
+    Parameters:
+    -----------
+        ls: A list of strings whose elements are integers.
+        precs: A list of integers specifying where to place decimal.
+    Returns:
+    --------
+        A list of the floated strings with the proper decimal \
+        placement.
+    """
+    n = len(ls)
+    assert n == len(precs), 'List of strings must be same length as list of precisions'
+    result = [0]*n
+
+    for i in range(n):
+        val = ls[i]
+        p = precs[i]
+
+        val = val[:p]+'.'+val[p:]
+        result[i] = float(val)
+    return result
+
 if __name__ == '__main__':
     # Parse the command line arguments
     parser = argparse.ArgumentParser()
@@ -21,6 +49,12 @@ if __name__ == '__main__':
 
     parser.add_argument('--num-annotations',
                         help = 'The number of annotations',
+                        type = int,
+                        required = False)
+    
+    parser.add_argument('--annotation-precisions',
+                        help= 'The precision to use for each annotation term',
+                        nargs = '+',
                         type = int,
                         required = True)
 
@@ -61,6 +95,7 @@ if __name__ == '__main__':
     split = args.split
     switch_recv_spatial = args.switch_recv_spatial
     save_dir = args.save_dir
+    precisions = args.annotation_precisions
 
 
     # If save dir doesn't exist, make it
@@ -99,8 +134,8 @@ if __name__ == '__main__':
             # The following assumes the first element of the list numbers
             # is something like Stations or SEM, if Jim changes the dataformat
             # this will need to change
-            numbers = list(map(int,name.split('_')[1:] ))
-            assert (len(numbers) == num_annotations), 'The number of annotations present on the file does not match the number of specified annotations'
+            numbers = list(map(lambda x: precision_chop(x,precisions),name.split('_')[1:] ))
+            #assert (len(numbers) == len(precisions)), 'The number of annotations present on the file does not match the number of specified annotations'
             label_bucket[ii,...] = numbers
 
             # Open the fortran data dump
