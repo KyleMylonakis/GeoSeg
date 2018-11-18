@@ -45,10 +45,10 @@ if __name__ == '__main__':
     parser.add_argument('--bucket-size',
                         help = 'Number of fortran files per numpy file',
                         type = int,
-                        default = None)
+                        default = 20833)
 
     parser.add_argument('--num-annotations',
-                        help = 'The number of annotations',
+                        help = '(Deprecated) The number of annotations',
                         type = int,
                         required = False)
     
@@ -116,7 +116,6 @@ if __name__ == '__main__':
     num_dims = 3
 
     # Create the label and data buckets
-    print( bucket_size, precisions)
     baddies = 0
     bad_files = []
     for current_bucket in range(0,num_buckets):
@@ -142,7 +141,6 @@ if __name__ == '__main__':
             # is something like Stations or SEM, if Jim changes the dataformat
             # this will need to change
             numbers = precision_chop(name.split('_')[1:],precisions)
-            print(numbers)
             assert (len(numbers) == len(precisions)), 'The number of annotations present on the file does not match the number of specified annotations'
             label_bucket[ii,...] = numbers
 
