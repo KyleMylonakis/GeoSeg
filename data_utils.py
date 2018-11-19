@@ -1,7 +1,7 @@
 import numpy as np 
 import multiprocessing as mp 
 
-# TODO: Rewrite in a parallel or vectorized manner Map/Reduce formalism for example
+# TODO @kmylonakis: Rewrite in a parallel or vectorized manner Map/Reduce formalism for example
 #       May have to unroll the loops or something, or think about cache performance here.
 def interface_groundtruth_1d(y,
                             output_shape=100,
@@ -121,12 +121,13 @@ def ground_truth_1d_2layer(raw_labels,output_shape=100, num_cores = 4):
         result = np.array(result)
         return result
 
-def ground_truth_1d_multilayer_single_example(labels_tensor,output_shape=100):
+def ground_truth_1d_multilayer_single_example(labels_tensor,output_shape=100, low_speed_pocket = False):
         """
         Assumes labels_tensor is a numpy array of the form 
                 (c1,c2,...,cN,r1,r2,...,r(n-1)) 
         Corresponding to the wavespeeds in various regions seperated
-        at the ri. 
+        at the ri. Sorts the wavespeeds and classes are assigned in 
+        descending order starting at 0. 
 
         Parameters:
         -----------
@@ -134,7 +135,7 @@ def ground_truth_1d_multilayer_single_example(labels_tensor,output_shape=100):
                 output_shape: Shape of output array (int)
         Returns:
         --------
-                An array of size (output_shape,num_classes)
+                An array of size (output_shape,num_classes).
         """
 
         assert labels_tensor.shape[0] % 2 == 1, 'Labels must be an odd number but got {}'.format(labels_tensor.shape[0])
@@ -152,21 +153,34 @@ def ground_truth_1d_multilayer_single_example(labels_tensor,output_shape=100):
         splits.sort()           # modifies splits
         classes.sort()      # modifies wave speeds
         
+        # Make a labels map {ci: label}
+        if low_speed_pocket:
+                print('Low speed pocket ground truth')
+                num_classes = 2
+                low_speed = min(wave_speeds)
+                labels_map = {w:0 for w in wave_speeds if w != low_speed}
+                labels_map[low_speed] = 1
+        else:
+                labels_map = {w:classes.index(w) for w in wave_speeds}
+
         ground_truth = [0]*output_shape
-        ground_truth[:splits[0]] = [one_hot_it(classes.index(wave_speeds[0]),num_classes)]*splits[0]
-        for i in range(1,num_classes-1):
+        #ground_truth[:splits[0]] = [one_hot_it(classes.index(wave_speeds[0]),num_classes)]*splits[0]
+        ground_truth[:splits[0]] = [one_hot_it(labels_map[wave_speeds[0]],num_classes)]*splits[0]
+        for i in range(1,len(wave_speeds)-1):
                 s1,s2 = splits[i-1], splits[i]
-                ground_truth[s1:s2] = [one_hot_it(classes.index(wave_speeds[i]),num_classes)]*(s2-s1)
-        ground_truth[splits[-1]:] = [one_hot_it(classes.index(wave_speeds[-1]),num_classes)]*(output_shape - splits[-1])
-        return ground_truth
+                #ground_truth[s1:s2] = [one_hot_it(classes.index(wave_speeds[i]),num_classes)]*(s2-s1)
+                ground_truth[s1:s2] = [one_hot_it(labels_map[wave_speeds[i]],num_classes)]*(s2-s1)
+        #ground_truth[splits[-1]:] = [one_hot_it(classes.index(wave_speeds[-1]),num_classes)]*(output_shape - splits[-1])
+        ground_truth[splits[-1]:] = [one_hot_it(labels_map[wave_speeds[-1]],num_classes)]*(output_shape - splits[-1])
+        
+        return np.array(ground_truth)
 
-
-
+# Not used
 def ground_truth_1d_multi_layer_single_example_packed(labels_tensor_output_shape):
         labels_tensor,output_shape = labels_tensor_output_shape
         return ground_truth_1d_2layer_single_example(labels_tensor,output_shape=output_shape)
 
-def ground_truth_1d_multilayer(raw_labels,output_shape=100, num_cores = 4):
+def ground_truth_1d_multilayer(raw_labels,output_shape=100, num_cores = 4, low_speed_pocket = False):
         """
         Assumes raw_labels is of the form [(c1, c2, ratio)] corresponding
         to the ground truth where the top 100*ration % of pixels are c1 and 
@@ -196,42 +210,11 @@ def ground_truth_1d_multilayer(raw_labels,output_shape=100, num_cores = 4):
         result = [0]*num_samples
         for i in range(num_samples):
                 example = raw_labels[i]
-                result[i] = ground_truth_1d_multilayer_single_example(example,output_shape=output_shape)
+                result[i] = ground_truth_1d_multilayer_single_example(example,output_shape=output_shape, low_speed_pocket=low_speed_pocket)
         
         result = np.array(result)
         return result
 
-
-# Tests ground_truth_1d_2layer and times it. 
-# TODO: Remove when ready to commit to master. 
-#       Maybe put in a test script.
-"""
-num_samples = 100000
-np.random.seed(1)
-test = np.random.rand(num_samples,3)
-
-
-
-import time 
-
-
-t0 = time.time()
-z = ground_truth_1d_2layer(test,output_shape= 11)
-party = time.time() - t0 
-
-out_test = [0]*num_samples
-t0 = time.time()
-for i in range(num_samples):
-        out = test[i,...]
-        out_test[i] = ground_truth_1d_2layer_single_example(out,output_shape=11)
-out_test = np.array(out_test)
-
-normy = time.time() - t0
-
-msg = " \n z shape: {z.shape} \n out shape: {out_test.shape} \n parralell time: {party} \n normal time: {normy}"
-
-print(msg.format(z=z,out_test=out_test,party=party,normy=normy))
-
-print(np.linalg.norm(out_test-z))
-"""     
-
+# Wrap up the 1d pocket label function
+def ground_truth_1d_pocket(raw_labels, output_shape=100):
+        return ground_truth_1d_multilayer(raw_labels,output_shape=output_shape, low_speed_pocket= True)
