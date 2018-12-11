@@ -134,8 +134,9 @@ if __name__ == '__main__':
             # The following assumes the first element of the list numbers
             # is something like Stations or SEM, if Jim changes the dataformat
             # this will need to change
-            numbers = list(map(lambda x: precision_chop(x,precisions),name.split('_')[1:] ))
-            #assert (len(numbers) == len(precisions)), 'The number of annotations present on the file does not match the number of specified annotations'
+            #numbers = list(map(lambda x: precision_chop(x,precisions),name.split('_')[1:] ))
+            numbers = precision_chop(name.split('_')[1:],precisions)
+            assert (len(numbers) == len(precisions)), 'The number of annotations present on the file does not match the number of specified annotations'
             label_bucket[ii,...] = numbers
 
             # Open the fortran data dump
