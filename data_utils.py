@@ -133,9 +133,13 @@ def ground_truth_1d_multilayer_single_example(labels_tensor,output_shape=100, lo
         -----------
                 labels_tensor: np.array of shape (2num_classes - 1,)
                 output_shape: Shape of output array (int)
+                low_speed_pocket: Whether to interpret data as low_speed_pocket or not. If true 
+                        the output will have only 2 classes. 0 for the low speed and 1 for all other
+                        regions.
         Returns:
         --------
-                An array of size (output_shape,num_classes).
+                If low_speed_pocket is False an array of size (output_shape,num_classes), if it is True
+                then size is (output_shape, 2).
         """
 
         assert labels_tensor.shape[0] % 2 == 1, 'Labels must be an odd number but got {}'.format(labels_tensor.shape[0])
@@ -164,13 +168,10 @@ def ground_truth_1d_multilayer_single_example(labels_tensor,output_shape=100, lo
                 labels_map = {w:classes.index(w) for w in wave_speeds}
 
         ground_truth = [0]*output_shape
-        #ground_truth[:splits[0]] = [one_hot_it(classes.index(wave_speeds[0]),num_classes)]*splits[0]
         ground_truth[:splits[0]] = [one_hot_it(labels_map[wave_speeds[0]],num_classes)]*splits[0]
         for i in range(1,len(wave_speeds)-1):
                 s1,s2 = splits[i-1], splits[i]
-                #ground_truth[s1:s2] = [one_hot_it(classes.index(wave_speeds[i]),num_classes)]*(s2-s1)
                 ground_truth[s1:s2] = [one_hot_it(labels_map[wave_speeds[i]],num_classes)]*(s2-s1)
-        #ground_truth[splits[-1]:] = [one_hot_it(classes.index(wave_speeds[-1]),num_classes)]*(output_shape - splits[-1])
         ground_truth[splits[-1]:] = [one_hot_it(labels_map[wave_speeds[-1]],num_classes)]*(output_shape - splits[-1])
         
         return np.array(ground_truth)
@@ -182,6 +183,8 @@ def ground_truth_1d_multi_layer_single_example_packed(labels_tensor_output_shape
 
 def ground_truth_1d_multilayer(raw_labels,output_shape=100, num_cores = 4, low_speed_pocket = False):
         """
+        Essentially a wrapper to vectorize ground_truth_1d_multilayer_single_example.
+
         Assumes raw_labels is of the form [(c1, c2, ratio)] corresponding
         to the ground truth where the top 100*ration % of pixels are c1 and 
         the bottom 100*(1-ratio)% are c2. Returns an (num_samples, output_shape) long tensor 
@@ -193,10 +196,13 @@ def ground_truth_1d_multilayer(raw_labels,output_shape=100, num_cores = 4, low_s
                         labels (c1,c2,ratio) as described above.
                 output_shape: Desired shape of 1D output for ground truth.
                 num_cores: (Deprecated) Number of cores to use in parallel processing.
+                low_speed_pocket: Whether to interpret data as low_speed_pocket or not. If true 
+                        the output will have only 2 classes. 0 for the low speed and 1 for all other
+                        regions.
         Returns:
         --------
-                ground_truth tensor of size output_shape. Each row is a 1 or 0 depending on whether it 
-                came from the higher or lower wavespeed region respectively. 
+                If low_speed_pocket is False an array of size (num_samples,output_shape,num_classes), if it is True
+                then size is (num_samples,output_shape, 2).
         """
         num_samples = raw_labels.shape[0]        
         
