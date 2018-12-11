@@ -48,7 +48,7 @@ if __name__ == '__main__':
                         default = 20833)
 
     parser.add_argument('--num-annotations',
-                        help = 'The number of annotations',
+                        help = '(Deprecated) The number of annotations',
                         type = int,
                         required = False)
     
@@ -88,7 +88,11 @@ if __name__ == '__main__':
                         
     # Set parsed args as variables
     fortran_data_path = args.fortran_data_dir
-    bucket_size = args.bucket_size
+    
+    if args.bucket_size is None:
+        bucket_size = len(os.listdir(fortran_data_path))
+    else:
+        bucket_size = args.bucket_size
     num_annotations = args.num_annotations
     num_receivers = args.num_receivers
     num_time_steps = args.num_time_steps
@@ -112,6 +116,8 @@ if __name__ == '__main__':
     num_dims = 3
 
     # Create the label and data buckets
+    baddies = 0
+    bad_files = []
     for current_bucket in range(0,num_buckets):
         
         # The last bucket will in general be smaller than the rest of the buckets
@@ -121,7 +127,7 @@ if __name__ == '__main__':
         
         # Initialize the current bucket
         data_bucket = np.zeros((bucket_size, num_time_steps, num_dims, num_receivers))
-        label_bucket = np.zeros((bucket_size, num_annotations))
+        label_bucket = np.zeros((bucket_size, len(precisions)))
 
 
         # Start populating the buckets with the fortran data
@@ -140,13 +146,23 @@ if __name__ == '__main__':
             label_bucket[ii,...] = numbers
 
             # Open the fortran data dump
+
             tmp = np.fromfile(os.path.join(fortran_data_path, fortran_data[start + ii]), dtype=np.float_)
 
             # Normalize the data
             tmp = tmp / np.max(tmp)
 
             # Add data from file to the bucket using Fortran ordering
-            data_bucket[ii,...] = tmp.reshape((num_time_steps,num_dims,num_receivers), order='F')
+            
+            try:
+                data_bucket[ii,...] = tmp.reshape((num_time_steps,num_dims,num_receivers), order='F')
+            except:
+                baddies+=1
+                err = "File {} has {} elements and cannot be reshaped to {} \n There are {} baddies"
+                print(err.format(name,tmp.shape,(num_time_steps,num_dims,num_receivers),baddies))
+                bad_files.append(name+',%d'%tmp.shape[0])
+
+
         
         # Transpose the spatial and receiver coordinates
         if switch_recv_spatial:
@@ -174,3 +190,8 @@ if __name__ == '__main__':
         np.save(train_label_path, label_bucket[0:split_pt,...])
         np.save(eval_data_path, data_bucket[split_pt:,...])
         np.save(eval_label_path, label_bucket[split_pt:,...])
+
+        with open('baddies.txt','w') as fw:
+            for baddy in bad_files:
+                fw.write(baddy)
+        
