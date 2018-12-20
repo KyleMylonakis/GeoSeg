@@ -159,7 +159,6 @@ def ground_truth_1d_multilayer_single_example(labels_tensor,output_shape=100, lo
         
         # Make a labels map {ci: label}
         if low_speed_pocket:
-                print('Low speed pocket ground truth')
                 num_classes = 2
                 low_speed = min(wave_speeds)
                 labels_map = {w:0 for w in wave_speeds if w != low_speed}
@@ -224,3 +223,103 @@ def ground_truth_1d_multilayer(raw_labels,output_shape=100, num_cores = 4, low_s
 # Wrap up the 1d pocket label function
 def ground_truth_1d_pocket(raw_labels, output_shape=100):
         return ground_truth_1d_multilayer(raw_labels,output_shape=output_shape, low_speed_pocket= True)
+
+
+def ground_truth_2d_circle_pocket_single_example(radius,x,z,
+                                                 xmax = 2.0,
+                                                 zmax = 3.0,
+                                                 output_shape = [128,128], 
+                                                 boundary_class = False):
+        """
+        Class map {0: low speed (pocket), 1: high speed, 2: boundary}
+        Assumes (0,0) is in the upper left corner of a xmax by zmax rectagnle.
+        Creates a one hot vector at each pixel for a given class.
+
+        Parameters:
+        -----------
+                radius: The radius of the pocket. (float)
+                x: The x coordinate of the pocket. (float)
+                z: The z coordinate of the pocket. (float)
+                xmax: The length of the x direction. (float)
+                zmax: The length of the z direction. (float)
+                output_shape: The shape for generated output. Note that
+                        [M,N] will have the M pixels in the z direction
+                        and N pixels in the x direction. This should be
+                        set so that M/N ~ zmax/xmax to keep geometry good. 
+        Returns:
+        --------
+                A numpy array of shape [M,N,3] where p(i,j,k) = 1 means that 
+                location (i,j) belongs to class k (i.e. it is a one hot vector).
+        """
+        # Get pixel value for x and z.
+        # Note the order is switched!!!
+        x_node, z_node = output_shape[1] * x/xmax, output_shape[0] * z/zmax
+        x_step, z_step = xmax/float(output_shape[1]), zmax/float(output_shape[0]) # km/pixel in each direction
+
+        # Find the boundary box
+        x1, x2 = int(x_node - radius/x_step),int( x_node + radius/x_step)
+        z1, z2 = int(z_node - radius/z_step), int(z_node+radius/z_step)
+        
+        xbox = [max(x1,0), min(x2,output_shape[1])]
+        zbox = [max(z1,0), min(z2,output_shape[0])]
+
+        # Initialize
+        result = np.full(output_shape,1)
+
+        num_classes = 2
+        if boundary_class:
+                # Note the order is switched!!!
+                result[zbox[0]:zbox[1],xbox[0]:xbox[1]] = 2
+                num_classes+=1
+        
+        # Fill in the pocket but only look in the box to save time. 
+        for ix in range(xbox[0],xbox[1]):
+                for iz in range(zbox[0],zbox[1]):
+                        x_dist = (x_node-ix)*x_step
+                        z_dist = (z_node-iz)*z_step
+
+                        dist = np.sqrt(x_dist**2+z_dist**2)
+                        if dist <= radius:
+                                # Note the order is switched!!!
+                                result[iz,ix] = 0
+        # One hot it
+        result.shape = output_shape[0]*output_shape[1]
+        result =np.array(list(map(lambda x: one_hot_it(x,num_classes), result)))
+        result.shape = output_shape+[num_classes]
+
+        return result
+
+def ground_truth_2d_circle_pocket(raw_labels, 
+                                  xmax = 2.0,
+                                  zmax = 3.0,
+                                  output_shape = [120,180], 
+                                  boundary_class = False):
+        """
+        Expands raw labels into ground truths for 2D circle
+        pocket problems. 
+        
+        Parameters:
+        -----------
+                raw_labels: A numpy array of shape (N,3) where
+                        each row is a label (radius, x , z).
+                xmax: The length of the x direction. (float)
+                zmax: The length of the z direction. (float)
+                output_shape: The shape for generated output. Note that
+                        [m,n] will have the m pixels in the z direction
+                        and n pixels in the x direction. This should be
+                        set so that m/n ~ zmax/xmax to keep geometry good. 
+        Returns:
+        --------
+                A numpy array of shape [N,m,n,3] where the ith rowp(i,j,k) = 1 
+                means that location (i,j) belongs to class k (i.e. it is a one hot vector).
+        """
+        num_samples = raw_labels.shape[0]
+        results = [0]*num_samples
+        for i in range(num_samples):
+                r, xc, zc = raw_labels[i,...]
+                results[i] = ground_truth_2d_circle_pocket_single_example(r,sx,zc,
+                                                                xmax=xmax,
+                                                                zmax=zmax,
+                                                                output_shape=output_shape,
+                                                                boundary_class=boundary_class)
+        return results

@@ -7,7 +7,7 @@ from keras.callbacks import History, TensorBoard, ModelCheckpoint
 
 from data_utils import interface_groundtruth_1d
 from data_utils import interface_groundtruth_max
-from data_utils import ground_truth_1d_2layer, ground_truth_1d_multilayer, ground_truth_1d_pocket
+from data_utils import ground_truth_1d_2layer, ground_truth_1d_multilayer, ground_truth_1d_pocket, ground_truth_2d_circle_pocket
 
 
 from blocks.DenseBlock import DenseBlock
@@ -54,7 +54,8 @@ LABEL_FN = {
         'interface_1d':interface_groundtruth_1d,        # Deprecated
         'binary-1d': ground_truth_1d_2layer,    # Deprecated
         'multiclass-1d': ground_truth_1d_multilayer,
-        'pocket-1d': ground_truth_1d_pocket
+        'pocket-1d': ground_truth_1d_pocket,
+        'pocket-circ': ground_truth_2d_circle_pocket
         }
 
 
@@ -75,7 +76,12 @@ if __name__ == '__main__':
                         type = str,
                         default = None,
                         choices = list(LABEL_FN.keys())+[None])
-
+        # A quick band-aid until data prep is handled better.
+        parser.add_argument('--output-shape',
+                        help = 'The output shape for the ground truths. Leave as None for backward compatability',
+                        type = int,
+                        nargs = '+',
+                        default = None)
         args = parser.parse_args()
 
         with open(args.config,'r') as fc:
@@ -102,6 +108,8 @@ if __name__ == '__main__':
 
         # Handle the data
         # Load Data
+        # TODO: Wrap up the data and input pipeline into a class so all of 
+        #       this can be abstracted and handled behind the scenes.
         ds_fact = train_config['downsample']
         epochs = train_config['epochs'] 
         shuffle = train_config['shuffle']
@@ -124,9 +132,12 @@ if __name__ == '__main__':
         # Process data if a function is given.
         if args.label_fn:
                 label_fn = LABEL_FN[args.label_fn]
-                print(args.label_fn)
-                y_train = label_fn(y_train, output_shape=x_train.shape[1])
-                y_eval = label_fn(y_eval, output_shape=x_train.shape[1])
+                if args.output_shape is None:
+                        out_shape = x_train.shape[1]
+                else:
+                        out_shape = args.output_shape
+                y_train = label_fn(y_train, output_shape=out_shape)
+                y_eval = label_fn(y_eval, output_shape=out_shape)
 
         # Initiate block and model instance
         #

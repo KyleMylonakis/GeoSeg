@@ -2,6 +2,7 @@
 # Uses 1D mulitclass label function.
 
 config_dir=$1
+label_fn=$2
 
 dir_tag=${config_dir%"/"}
 
@@ -17,7 +18,7 @@ for config in ${configs[@]};
     save_dir=$config"_"$dir_tag
     save_dir=${save_dir/".json"/""}
     
-    python  main.py --config $config_dir"/"$config --save-dir $save_dir --label-fn multiclass-1d
+    python  main.py --config $config_dir"/"$config --save-dir $save_dir --label-fn $label_fn
 
     if [ -d $save_dir"/logs" ] 
     then 
