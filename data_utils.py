@@ -251,6 +251,9 @@ def ground_truth_2d_circle_pocket_single_example(radius,x,z,
                 A numpy array of shape [M,N,3] where p(i,j,k) = 1 means that 
                 location (i,j) belongs to class k (i.e. it is a one hot vector).
         """
+        _msg = "!!!You are using default parameters!!!! \nxmax:{} \nzmax:{}"
+        if xmax == 2.0 and zmax == 3.0:
+                print(_msg.format(2.0,3.0))
         # Get pixel value for x and z.
         # Note the order is switched!!!
         x_node, z_node = output_shape[1] * x/xmax, output_shape[0] * z/zmax
