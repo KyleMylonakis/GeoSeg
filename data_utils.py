@@ -325,4 +325,4 @@ def ground_truth_2d_circle_pocket(raw_labels,
                                                                 zmax=zmax,
                                                                 output_shape=output_shape,
                                                                 boundary_class=boundary_class)
-        return results
+        return np.array(results)
