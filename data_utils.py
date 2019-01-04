@@ -320,7 +320,7 @@ def ground_truth_2d_circle_pocket(raw_labels,
         results = [0]*num_samples
         for i in range(num_samples):
                 r, xc, zc = raw_labels[i,...]
-                results[i] = ground_truth_2d_circle_pocket_single_example(r,sx,zc,
+                results[i] = ground_truth_2d_circle_pocket_single_example(r,xc,zc,
                                                                 xmax=xmax,
                                                                 zmax=zmax,
                                                                 output_shape=output_shape,
