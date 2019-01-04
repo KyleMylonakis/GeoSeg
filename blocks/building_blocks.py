@@ -53,7 +53,7 @@ def conv_layer(inputs,
                     activation = activation,
                     padding='same',
                     name = name+'/bottle_neck')(out)
-        out = Dropout(dropout)(out)
+        out = Dropout(dropout, name = name+'/bottle_neck/dropout')(out)
         
     out = Conv2D(filters=filters,
                     kernel_size=kernel_size,
@@ -61,7 +61,7 @@ def conv_layer(inputs,
                     activation = activation,
                     padding='same',
                     name = name+'/conv')(out)
-    out = Dropout(dropout)(out)
+    out = Dropout(dropout, name = name +'/conv/dropout')(out)
     
     return out
 
@@ -472,8 +472,10 @@ def multiclass_output_layer_2d(inputs,
         A (Nt,Nx,num_classes) tensor where out[n,m,j] is the probability that pixes (n,m) is
         of class j. Needs to be reshaped before use with loss. 
     """
+    print(name)
     out = Conv2D(filters = num_classes,
                 kernel_size = (1,1),
                 activation = activation,
-                padding = "same")(inputs)
+                padding = "same",
+                name = name)(inputs)
     return out
