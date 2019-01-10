@@ -232,7 +232,7 @@ def ground_truth_2d_circle_pocket_single_example(radius,x,z,
                                                  boundary_class = False):
         """
         Class map {0: low speed (pocket), 1: high speed, 2: boundary}
-        Assumes (0,0) is in the upper left corner of a xmax by zmax rectagnle.
+        Assumes (0,0) is in the upper left corner of a xmax by zmax rectangle.
         Creates a one hot vector at each pixel for a given class.
 
         Parameters:
@@ -309,8 +309,7 @@ def ground_truth_2d_circle_pocket(raw_labels,
                 zmax: The length of the z direction. (float)
                 output_shape: The shape for generated output. Note that
                         [m,n] will have the m pixels in the z direction
-                        and n pixels in the x direction. This should be
-                        set so that m/n ~ zmax/xmax to keep geometry good. 
+                        and n pixels in the x direction. 
         Returns:
         --------
                 A numpy array of shape [N,m,n,3] where the ith rowp(i,j,k) = 1 
@@ -325,4 +324,103 @@ def ground_truth_2d_circle_pocket(raw_labels,
                                                                 zmax=zmax,
                                                                 output_shape=output_shape,
                                                                 boundary_class=boundary_class)
+        return np.array(results)
+
+
+def ground_truth_sine_single_example(ct,cb,D,f,
+                                        amplitude = 0.1,
+                                        xmax = 2.0,
+                                        zmax = 3.0,
+                                        output_shape = [120,180], 
+                                        boundary_class = False):
+        """
+        Class map {0: low speed (pocket), 1: high speed}
+        Generates a ground truth for the sine interface problem. 
+        Interface function:
+                F(x,z) = z-amplitude*sin(f*PI*) = D
+        Since (0,0) is the top left corner of a grid (that is depth is measured
+        downwards), the top region is when F < D and the bottom is when F > D. 
+        
+        Currently has high speed being top hardcoded. Can change this later
+        if we want to switch it up
+        
+        Parameters:
+        -----------
+                ct: Wave speed of top region. (float)
+                cb: Wave sepped of bottom region. (float)
+                D : Center line of sine curve. (float)
+                f : Frequency of sine curve. (float)
+                amplitude: The amplitude of the sine curve in km. (float)
+                xmax: The length of the x direction. (float)
+                zmax: The length of the z direction. (float)
+                output_shape: The shape for generated output. Note that
+                        [m,n] will have the m pixels in the z direction
+                        and n pixels in the x direction.
+        Returns:
+        --------
+                A numpy array of shape [M,N,3] where p(i,j,k) = 1 means that 
+                location (i,j) belongs to class k (i.e. it is a one hot vector).
+        """
+        # Total nodes, notice order swap.
+        Nx,Nz = output_shape[1], output_shape[0]
+        # Get a step for each index note order swap.
+        x_step, z_step = xmax/float(Nx), zmax/float(Nz) # km/pixel in each direction
+
+        # Find the centerline index.
+        D_ix = int(D/float(zmax) * Nz)
+        # Convert amplitude to 
+        amplitude_pixels = int(amplitude/float(z_step))+1
+
+        # Make a band around sine interface
+        # to reduce number of pixels checked.
+        z_band = [max(D_ix - amplitude_pixels,0), min(D_ix+amplitude_pixels,Nz)]
+
+        # Fill in easy ones.
+        result = np.zeros(output_shape+[2])
+        # HARDCODED THE TOP TO BE HIGHSPEED
+        result[:z_band[0],:,1] = 1
+        result[z_band[1]:,:,0] = 1
+        
+        for ix in range(Nx):
+                for iz in range(z_band[0],z_band[1]):
+                        x_loc,z_loc = x_step*ix, z_step*iz 
+                        val = z_loc-amplitude*np.sin(f*np.pi*x_loc)
+                        if val < D:
+                                result[iz,ix,1] = 1
+                        else: # Assigns boundary to lowspeed region
+                                result[iz,ix,0] = 1
+        
+        return result
+
+def ground_truth_sine(raw_labels, 
+                        amp = 0.1,
+                        xmax = 2.0,
+                        zmax = 3.0,
+                        output_shape = [120,180]):
+        """
+        Expands raw labels into ground truths for sine
+        interface problems.
+        
+        Parameters:
+        -----------
+                raw_labels: A numpy array of shape (N,3) where
+                        each row is a label (radius, x , z).
+                xmax: The length of the x direction. (float)
+                zmax: The length of the z direction. (float)
+                output_shape: The shape for generated output. Note that
+                        [m,n] will have the m pixels in the z direction
+                        and n pixels in the x direction. 
+        Returns:
+        --------
+                A numpy array of shape [N,m,n,3] where the ith rowp(i,j,k) = 1 
+                means that location (i,j) belongs to class k (i.e. it is a one hot vector).
+        """
+        num_samples = raw_labels.shape[0]
+        results = [0]*num_samples
+        for i in range(num_samples):
+                ct, cb, D, f = raw_labels[i,...]
+                results[i] = ground_truth_sine_single_example(ct,cb,D,f,amplitude=amp,
+                                                                xmax=xmax,
+                                                                zmax=zmax,
+                                                                output_shape=output_shape)
         return np.array(results)

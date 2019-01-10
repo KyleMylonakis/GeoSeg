@@ -7,7 +7,7 @@ from keras.callbacks import History, TensorBoard, ModelCheckpoint
 
 from data_utils import interface_groundtruth_1d
 from data_utils import interface_groundtruth_max
-from data_utils import ground_truth_1d_2layer, ground_truth_1d_multilayer, ground_truth_1d_pocket, ground_truth_2d_circle_pocket
+from data_utils import ground_truth_1d_2layer, ground_truth_1d_multilayer, ground_truth_1d_pocket, ground_truth_2d_circle_pocket, ground_truth_sine
 
 
 from blocks.DenseBlock import DenseBlock
@@ -42,20 +42,14 @@ BLOCKS = {
         'conv': ConvBlock
         }
 
-#TRANSFER_BRANCHES = {
-#    'basic-up': basic_up_sample,
-#    'basic-down-up': basic_down_up_sample,
-##    'res-up': residual_up_sample,
-#    'res-down-up': residual_down_up_sample
-#    }
-
 LABEL_FN = {
         'interface_max':interface_groundtruth_max,      # Deprecated
         'interface_1d':interface_groundtruth_1d,        # Deprecated
         'binary-1d': ground_truth_1d_2layer,    # Deprecated
         'multiclass-1d': ground_truth_1d_multilayer,
         'pocket-1d': ground_truth_1d_pocket,
-        'pocket-circ': ground_truth_2d_circle_pocket
+        'pocket-circ': ground_truth_2d_circle_pocket,
+        'sine-interface': ground_truth_sine
         }
 
 
