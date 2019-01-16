@@ -109,14 +109,19 @@ if __name__ == '__main__':
         shuffle = train_config['shuffle']
         batch_size = train_config['batch_size']
 
+        print("Loading training data and labels")
         x_train = np.load(train_config['data']).astype(np.float32)
         y_train = np.load(train_config['labels']).astype(np.float32)
+        print("Training data and labels loaded")
         
+        print("Loading evaluation data and labels")
         x_eval = np.load(eval_config['data']).astype(np.float32)
         y_eval = np.load(eval_config['labels']).astype(np.float32)
+        print("Evaluation data and labels loaded")
         
         # Downsample temporal resolution
         assert x_train.shape[1] % ds_fact == 0, 'The downsample factor, %d, must divide the initial sample size %d'%(ds_fact,x_train.shape[1])
+        print("Downsampling training and evaluation data")
         x_train = x_train[:,::ds_fact,...]
         x_eval = x_eval[:,::ds_fact,...]
 
@@ -124,6 +129,7 @@ if __name__ == '__main__':
         assert x_train.shape[0] == y_train.shape[0], 'Number of samples does not match between station data and their labels'
 
         # Process data if a function is given.
+        print("Creating groundtruth from labels")
         if args.label_fn:
                 label_fn = LABEL_FN[args.label_fn]
                 if args.output_shape is None:
