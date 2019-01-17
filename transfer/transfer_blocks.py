@@ -260,12 +260,14 @@ def residual_down_up_sample(inputs,
     return out 
 
 def up_output_shape(input_shape, num_layers, factor = 2):
-    result = input_shape
+    result = []*len(input_shape)
+    result[:] = input_shape[:]
     result[1] = input_shape[1]*(2**num_layers)
     return result
 
 def down_up_output_shape(input_shape, num_layers, factor = 2):
-    result = input_shape
+    result = []*len(input_shape)
+    result[:] = input_shape[:]
     result[0] = input_shape[0]//(2**num_layers)
     result[1] = input_shape[1]*(2**num_layers)
     return result
