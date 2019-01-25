@@ -225,70 +225,83 @@ def ground_truth_1d_pocket(raw_labels, output_shape=100):
         return ground_truth_1d_multilayer(raw_labels,output_shape=output_shape, low_speed_pocket= True)
 
 
-def ground_truth_2d_circle_pocket_single_example(radius,x,z,
+def ground_truth_2d_circle_pocket_single_example(circles,
+                                                 #radius,x,z,
                                                  xmax = 2.0,
                                                  zmax = 3.0,
                                                  output_shape = [128,128], 
                                                  boundary_class = False):
         """
-        Class map {0: low speed (pocket), 1: high speed, 2: boundary}
+        Class map {0: low speed (pocket), 1: high speed, 2: boundary (DEPRECATED)}
         Assumes (0,0) is in the upper left corner of a xmax by zmax rectangle.
         Creates a one hot vector at each pixel for a given class.
 
         Parameters:
         -----------
-                radius: The radius of the pocket. (float)
-                x: The x coordinate of the pocket. (float)
-                z: The z coordinate of the pocket. (float)
+                circles: A list of circle data [c1,c2,...] 
+                        where:
+                        ci = [r,x,y]
+                        r: The radius of the pocket. (float)
+                        x: The x coordinate of the pocket. (float)
+                        z: The z coordinate of the pocket. (float)
                 xmax: The length of the x direction. (float)
                 zmax: The length of the z direction. (float)
                 output_shape: The shape for generated output. Note that
                         [M,N] will have the M pixels in the z direction
                         and N pixels in the x direction. 
+                boundary_class: (DEPRECATED) Whether the boundary of circle should 
+                        be a class. The boundary is the smallest square which 
+                        contains the pocket. 
         Returns:
         --------
                 A numpy array of shape [M,N,3] where p(i,j,k) = 1 means that 
                 location (i,j) belongs to class k (i.e. it is a one hot vector).
         """
-        _msg = "!!!You are using default parameters!!!! \nxmax:{} \nzmax:{}"
-        if xmax == 2.0 and zmax == 3.0:
-                print(_msg.format(2.0,3.0))
-        # Get pixel value for x and z.
-        # Note the order is switched!!!
-        x_node, z_node = output_shape[1] * x/xmax, output_shape[0] * z/zmax
-        x_step, z_step = xmax/float(output_shape[1]), zmax/float(output_shape[0]) # km/pixel in each direction
-
-        # Find the boundary box
-        x1, x2 = int(x_node - radius/x_step),int( x_node + radius/x_step)
-        z1, z2 = int(z_node - radius/z_step), int(z_node+radius/z_step)
-        
-        xbox = [max(x1,0), min(x2,output_shape[1])]
-        zbox = [max(z1,0), min(z2,output_shape[0])]
-
+       
         # Initialize
-        result = np.full(output_shape,1)
+        #result = np.full(output_shape+[num_classes],1)
+        result = np.zeros(output_shape+[2]) # Hardcode 2 classes
+        # Set highspeed
+        result[...,1] = 1
 
-        num_classes = 2
-        if boundary_class:
+        for circ in circles:
+                # Unpack
+                radius,x,z = circ
+                # Get pixel value for x and z.
                 # Note the order is switched!!!
-                result[zbox[0]:zbox[1],xbox[0]:xbox[1]] = 2
-                num_classes+=1
+                x_node, z_node = output_shape[1] * x/xmax, output_shape[0] * z/zmax
+                x_step, z_step = xmax/float(output_shape[1]), zmax/float(output_shape[0]) # km/pixel in each direction
+
+                # Find the boundary box
+                x1, x2 = int(x_node - radius/x_step),int( x_node + radius/x_step)
+                z1, z2 = int(z_node - radius/z_step), int(z_node+radius/z_step)
+                
+                xbox = [max(x1,0), min(x2,output_shape[1])]
+                zbox = [max(z1,0), min(z2,output_shape[0])]
+
+                # Remove boundary class for now maybe put back later.
+                #num_classes = 2
+                #if boundary_class:
+                #        # Note the order is switched!!!
+                #        result[zbox[0]:zbox[1],xbox[0]:xbox[1]] = 2
+                #        num_classes+=1
+                
+                # Fill in the pocket but only look in the box to save time. 
+                for ix in range(xbox[0],xbox[1]):
+                        for iz in range(zbox[0],zbox[1]):
+                                x_dist = (x_node-ix)*x_step
+                                z_dist = (z_node-iz)*z_step
+
+                                dist = np.sqrt(x_dist**2+z_dist**2)
+                                if dist <= radius:
+                                        # Note the order is switched!!!
+                                        result[iz,ix,0] = 1
+                                        result[iz,ix,1] = 0
         
-        # Fill in the pocket but only look in the box to save time. 
-        for ix in range(xbox[0],xbox[1]):
-                for iz in range(zbox[0],zbox[1]):
-                        x_dist = (x_node-ix)*x_step
-                        z_dist = (z_node-iz)*z_step
-
-                        dist = np.sqrt(x_dist**2+z_dist**2)
-                        if dist <= radius:
-                                # Note the order is switched!!!
-                                result[iz,ix] = 0
-        # One hot it
-        result.shape = output_shape[0]*output_shape[1]
-        result =np.array(list(map(lambda x: one_hot_it(x,num_classes), result)))
-        result.shape = output_shape+[num_classes]
-
+        # One hot it *** Not necessary any more since num classes is hardcoded***
+        #result.shape = output_shape[0]*output_shape[1]
+        #result =np.array(list(map(lambda x: one_hot_it(x,num_classes), result)))
+        #result.shape = output_shape+[num_classes]
         return result
 
 def ground_truth_2d_circle_pocket(raw_labels, 
@@ -298,12 +311,14 @@ def ground_truth_2d_circle_pocket(raw_labels,
                                   boundary_class = False):
         """
         Expands raw labels into ground truths for 2D circle
-        pocket problems. 
+        pocket problems. Expects examples to be in the form 
+                example = [r1,x1,z1,r2,x2,z2,...]
         
         Parameters:
         -----------
-                raw_labels: A numpy array of shape (N,3) where
-                        each row is a label (radius, x , z).
+                raw_labels: A numpy array of shape (N,3*j) where j
+                        is the number of circles and each row is 
+                        a label [r1, x1, z1, r2, x2, z2,...].
                 xmax: The length of the x direction. (float)
                 zmax: The length of the z direction. (float)
                 output_shape: The shape for generated output. Note that
@@ -314,11 +329,21 @@ def ground_truth_2d_circle_pocket(raw_labels,
                 A numpy array of shape [N,m,n,3] where the ith rowp(i,j,k) = 1 
                 means that location (i,j) belongs to class k (i.e. it is a one hot vector).
         """
+        _msg = "!!!You are using default parameters!!!! \nxmax:{} \nzmax:{}"
+        if xmax == 2.0 and zmax == 3.0:
+                print(_msg.format(2.0,3.0))
+        
+
         num_samples = raw_labels.shape[0]
         results = [0]*num_samples
         for i in range(num_samples):
-                r, xc, zc = raw_labels[i,...]
-                results[i] = ground_truth_2d_circle_pocket_single_example(r,xc,zc,
+                num_circles = int(raw_labels.shape[1]/3)
+                circles = [0]*num_circles
+                for j in range(num_circles):
+                        circles[j] = raw_labels[i,j*3:(j+1)*3]
+                #r, xc, zc = raw_labels[i,...]
+                results[i] = ground_truth_2d_circle_pocket_single_example(circles,
+                                                                #r,xc,zc,
                                                                 xmax=xmax,
                                                                 zmax=zmax,
                                                                 output_shape=output_shape,
