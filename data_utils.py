@@ -244,8 +244,7 @@ def ground_truth_2d_circle_pocket_single_example(radius,x,z,
                 zmax: The length of the z direction. (float)
                 output_shape: The shape for generated output. Note that
                         [M,N] will have the M pixels in the z direction
-                        and N pixels in the x direction. This should be
-                        set so that M/N ~ zmax/xmax to keep geometry good. 
+                        and N pixels in the x direction. 
         Returns:
         --------
                 A numpy array of shape [M,N,3] where p(i,j,k) = 1 means that 
