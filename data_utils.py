@@ -391,13 +391,13 @@ def ground_truth_sine_single_example(ct,cb,D,f,
         x_step, z_step = xmax/float(Nx), zmax/float(Nz) # km/pixel in each direction
 
         # Find the centerline index.
-        D_ix = int(D/float(zmax) * Nz)
+        D_iz = int(D/float(zmax) * Nz)
         # Convert amplitude to 
         amplitude_pixels = int(amplitude/float(z_step))+1
 
         # Make a band around sine interface
         # to reduce number of pixels checked.
-        z_band = [max(D_ix - amplitude_pixels,0), min(D_ix+amplitude_pixels,Nz)]
+        z_band = [max(D_iz - amplitude_pixels,0), min(D_iz+amplitude_pixels,Nz)]
 
         # Fill in easy ones.
         result = np.zeros(output_shape+[2])
