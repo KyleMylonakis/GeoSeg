@@ -150,6 +150,7 @@ if __name__ == '__main__':
             tmp = np.fromfile(os.path.join(fortran_data_path, fortran_data[start + ii]), dtype=np.float_)
 
             # Normalize the data
+            assert (np.max(tmp) != 0), "Divide by zero error caused by data being uniformly zero."
             tmp = tmp / np.max(tmp)
 
             # Add data from file to the bucket using Fortran ordering
