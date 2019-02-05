@@ -150,6 +150,8 @@ if __name__ == '__main__':
             tmp = np.fromfile(fortran_file_path, dtype=np.float_)
 
             # Normalize the data
+            assert np.isfinite(tmp), "Some data is not a finite number."
+            assert (np.max(tmp) != 0), "Divide by zero error caused by data being uniformly zero."
             tmp = tmp / np.max(tmp)
 
             _msg = "File {} failed to process and stopped the conversion of {}.\nA nan was detected."
