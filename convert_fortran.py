@@ -146,14 +146,16 @@ if __name__ == '__main__':
             label_bucket[ii,...] = numbers
 
             # Open the fortran data dump
-
-            tmp = np.fromfile(os.path.join(fortran_data_path, fortran_data[start + ii]), dtype=np.float_)
+            fortran_file_path = os.path.join(fortran_data_path, fortran_data[start + ii])
+            tmp = np.fromfile(fortran_file_path, dtype=np.float_)
 
             # Normalize the data
             tmp = tmp / np.max(tmp)
 
-            # Add data from file to the bucket using Fortran ordering
-            
+            _msg = "File {} failed to process and stopped the conversion of {}.\nA nan was detected."
+            assert not np.isnan(tmp).any(), _msg.format(fortran_full_path,fortran_data_path)
+
+            # Add data from file to the bucket using Fortran ordering            
             try:
                 data_bucket[ii,...] = tmp.reshape((num_time_steps,num_dims,num_receivers), order='F')
             except:
