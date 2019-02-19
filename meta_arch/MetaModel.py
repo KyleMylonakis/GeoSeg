@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from keras import Model, Input
-from keras.layers import Reshape
+from keras.layers import Reshape, GaussianNoise
 import json 
 
 from transfer.TransferBranch import TransferBranch
@@ -38,9 +38,12 @@ class MetaModel(ABC):
         -----------
             config: A dictionary defining the model architecture.
                 Ex: config = {'model':{
-                        'meta_arch':{...},...},
-                        'block':{...},
-                        'transfer_branch':{...}}
+                                'meta_arch':{...},
+                                'block':{...},
+                                'transfer_branch':{...},
+                                'noise':{...}
+                                }
+                                }
         Returns:
         -----------
             A MetaModel class.
@@ -111,20 +114,24 @@ class MetaModel(ABC):
         --------
             A keras Model object.
         """
-        #if output_shape is None:
-        #    output_shape = input_shape[0]
-        #
-        #    output_shape = list(output_shape) + [self.meta_config['num_classes']]
         
         self.input_shape = input_shape
-
         inputs = Input(shape = input_shape, name = 'inputs')
 
-        if self.transfer_branch is not None:
-            print('TRANSFER BRANCH FOUND')
-            out = self.transfer_branch.transfer_inputs_branch()(inputs)
+        if self.noise:
+            ns_msg =" \
+                !!!!!~~~~~~~~NOTICE~~~~~~!!!!!\n\
+                You are training with additive guassian noise\n \
+                with stddev: \n{}\
+                To stop this remove 'noise' tag from config."
+            print(ns_msg.format(self.noise))
+            out = GaussianNoise(self.noise['stddev'])(inputs)
         else:
             out = inputs
+        
+        if self.transfer_branch is not None:
+            print('TRANSFER BRANCH FOUND')
+            out = self.transfer_branch.transfer_inputs_branch()(out)
         
         if self.first_layer:
             out = self.first_layer_fn()(out)
