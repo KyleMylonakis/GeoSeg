@@ -70,7 +70,7 @@ if __name__ == '__main__':
                         type = str,
                         default = None,
                         choices = list(LABEL_FN.keys())+[None])
-        # A quick band-aid until data prep is handled better.
+        # A band-aid until data prep is handled better.
         parser.add_argument('--output-shape',
                         help = 'The output shape for the ground truths. Leave as None for backward compatability',
                         type = int,
@@ -99,6 +99,11 @@ if __name__ == '__main__':
                 transfer_config = model_config['transfer_branch']
         else:
                 transfer_config = None
+        
+        if 'noise' in model_config.keys():
+                noise_std = model_config['noise']
+        else:
+                noise_std = None
 
         # Handle the data
         # Load Data
@@ -150,7 +155,7 @@ if __name__ == '__main__':
         else:
                 tb = None
         # Create meta_arch instance        
-        model = MODEL_TYPES[model_type](block = block, meta_config = meta_arch_config, transfer_branch = tb)
+        model = MODEL_TYPES[model_type](block = block, meta_config = meta_arch_config, transfer_branch = tb, noise = noise_std)
         
         if model_type == 'cnn':
                 red_factor = 2**(meta_arch_config['num_layers'])
@@ -161,7 +166,6 @@ if __name__ == '__main__':
                 model = model.build_model(input_shape=x_train.shape[1:], output_shape=y_train.shape[1])
         
         else:
-                
                 model = model.build_model(input_shape=x_train.shape[1:], output_shape= y_train.shape[1:])
 
         # Get the optimizer
