@@ -125,7 +125,8 @@ class MetaModel(ABC):
                 with stddev: \n{}\
                 To stop this remove 'noise' tag from config."
             print(ns_msg.format(self.noise))
-            out = GaussianNoise(self.noise['stddev'])(inputs)
+            #out = GaussianNoise(self.noise['stddev'])(inputs)
+            out = GaussianNoise(self.noise)(inputs)
         else:
             out = inputs
         

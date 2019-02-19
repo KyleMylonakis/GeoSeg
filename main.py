@@ -101,7 +101,7 @@ if __name__ == '__main__':
                 transfer_config = None
         
         if 'noise' in model_config.keys():
-                noise_std = model_config['noise']
+                noise_std = model_config['noise']['stddev']
         else:
                 noise_std = None
 

@@ -162,7 +162,13 @@ class ConvNet(MetaModel):
             transfer_branch_config = None
             self.transfer = None
         
-        self.noise = noise
+        if noise:
+            noise_config = noise
+            self.noise = noise
+        else:
+            noise_config = None
+            self.noise = None
+            
 
         # Put everything into a model config
         model_config = {
@@ -170,7 +176,7 @@ class ConvNet(MetaModel):
                             'meta_arch': meta_config,
                             'block': block.config,
                             'transfer_branch': transfer_branch_config,
-                            'noise': noise
+                            'noise': {'stddev':self.noise}
                             }
                         }
         # Set some useful attributes
