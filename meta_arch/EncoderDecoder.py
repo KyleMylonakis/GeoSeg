@@ -25,6 +25,7 @@ class EncoderDecoder(ConvNet):
     def __init__(self,
                 meta_config=None,
                 transfer_branch = None,
+                noise=None,
                 block = None,
                 num_layers = 2, 
                 num_classes = 2,
@@ -49,6 +50,7 @@ class EncoderDecoder(ConvNet):
         """
         super().__init__(meta_config = meta_config,
                         transfer_branch=transfer_branch,
+                        noise=noise,
                         block = block,
                         num_layers=num_layers,
                         num_classes=num_classes,

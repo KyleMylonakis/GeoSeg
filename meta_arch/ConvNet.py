@@ -22,6 +22,7 @@ class ConvNet(MetaModel):
                 meta_config=None,
                 block = None,
                 transfer_branch  = None,
+                noise = None,
                 num_receivers=3,
                 num_layers = 2, 
                 num_classes = 2,
@@ -56,6 +57,9 @@ class ConvNet(MetaModel):
                                     remaining_params: values}
             num_receivers: The number of receivers in the seismic data. If input
                 data shape is (N,r,f) num_receivers should be r.
+            transfer_branch: A transfer_branch object to restructure data in a learnable way.
+            noise: If a float it will add GaussianNoise layer to the model for training. 
+                if None it is ignored.
             num_layers: The number of convolutional blocks to use.
             num_classes: The number of classes in the sematic segmentation problem.
             compression: The factor to downsample the blocks in each layer.
@@ -157,13 +161,16 @@ class ConvNet(MetaModel):
         else:
             transfer_branch_config = None
             self.transfer = None
-        #assert False
+        
+        self.noise = noise
+
         # Put everything into a model config
         model_config = {
                         'model': {
                             'meta_arch': meta_config,
                             'block': block.config,
-                            'transfer_branch': transfer_branch_config
+                            'transfer_branch': transfer_branch_config,
+                            'noise': noise
                             }
                         }
         # Set some useful attributes
