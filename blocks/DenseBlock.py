@@ -64,6 +64,7 @@ class DenseBlock(ConvBlock):
         super().__init__( 
                 config = config,
                 filters = filters,
+                dimensions = 2
                 base_kernel = base_kernel,
                 trans_kernel = trans_kernel,
                 batch_norm = batch_norm,
