@@ -366,13 +366,14 @@ def ground_truth_sine_single_example(ct,cb,D,f,
         downwards), the top region is when F < D and the bottom is when F > D. 
         
         Currently has high speed being top hardcoded. Can change this later
-        if we want to switch it up
-        
+        if we want to switch it up.
+
+        ** D should be between 0 and 1 **        
         Parameters:
         -----------
                 ct: Wave speed of top region. (float)
                 cb: Wave sepped of bottom region. (float)
-                D : Center line of sine curve. (float)
+                D : Center line of sine curve as fraction of total depth. (float)
                 f : Frequency of sine curve. (float)
                 amplitude: The amplitude of the sine curve in km. (float)
                 xmax: The length of the x direction. (float)
@@ -391,7 +392,8 @@ def ground_truth_sine_single_example(ct,cb,D,f,
         x_step, z_step = xmax/float(Nx), zmax/float(Nz) # km/pixel in each direction
 
         # Find the centerline index.
-        D_iz = int(D/float(zmax) * Nz)
+        #D_iz = int(D/float(zmax) * Nz)
+        D_iz = int(D * Nz)
         # Convert amplitude to 
         amplitude_pixels = int(amplitude/float(z_step))+1
 
